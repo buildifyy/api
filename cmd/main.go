@@ -4,6 +4,7 @@ import (
 	"api/pkg/db"
 	"api/pkg/template"
 	"context"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -44,6 +45,8 @@ func main() {
 	log.Println("successfully connected to database")
 
 	r := gin.Default()
+
+	r.Use(cors.Default())
 
 	template.RegisterRoutes(r, templateService)
 

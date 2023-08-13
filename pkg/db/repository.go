@@ -14,6 +14,7 @@ type Repository interface {
 	Ping() error
 	AddOne(data interface{}) error
 	GetAllTemplates(filter primitive.D) ([][]byte, error)
+	GetTemplate(filter primitive.D) (*models.Template, error)
 }
 
 type repository struct {
@@ -60,6 +61,18 @@ func (r *repository) GetAllTemplates(filter primitive.D) ([][]byte, error) {
 	}
 
 	return ret, nil
+}
+
+func (r *repository) GetTemplate(filter primitive.D) (*models.Template, error) {
+	collection := r.client.Database("buildifyy").Collection("templates")
+
+	var result models.Template
+	if err := collection.FindOne(context.Background(), filter).Decode(&result); err != nil {
+		log.Println("error finding data in database: ", err)
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (r *repository) AddOne(data interface{}) error {

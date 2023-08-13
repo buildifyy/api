@@ -11,6 +11,7 @@ import (
 type Service interface {
 	AddTemplate(template models.Template) error
 	GetTemplates(tenantId string) ([]models.Template, error)
+	GetTemplate(tenantId string, templateId string) (*models.Template, error)
 }
 
 type service struct {
@@ -53,4 +54,16 @@ func (s *service) GetTemplates(tenantId string) ([]models.Template, error) {
 	}
 
 	return templates, nil
+}
+
+func (s *service) GetTemplate(tenantId string, templateId string) (*models.Template, error) {
+	filter := bson.D{{"tenantId", tenantId}, {"basicInformation.externalId", templateId}}
+
+	template, err := s.db.GetTemplate(filter)
+	if err != nil {
+		log.Println("error getting all templates: ", err)
+		return nil, err
+	}
+
+	return template, nil
 }
