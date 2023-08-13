@@ -1,6 +1,7 @@
 package main
 
 import (
+	"api/pkg/common"
 	"api/pkg/db"
 	"api/pkg/template"
 	"context"
@@ -36,6 +37,7 @@ func main() {
 
 	dbRepository := db.NewRepository(client)
 	templateService := template.NewService(dbRepository)
+	commonService := common.NewService(dbRepository)
 
 	if err := dbRepository.Ping(); err != nil {
 		log.Println("error pinging database: ", err)
@@ -49,6 +51,7 @@ func main() {
 	r.Use(cors.Default())
 
 	template.RegisterRoutes(r, templateService)
+	common.RegisterRoutes(r, commonService)
 
 	if err = r.Run(); err != nil {
 		panic(err)

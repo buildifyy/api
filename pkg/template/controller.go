@@ -38,6 +38,19 @@ func RegisterRoutes(r *gin.Engine, templateService Service) {
 		c.Status(http.StatusCreated)
 	})
 
+	r.GET("/api/v1/tenants/:tenantId/templates/parent", func(c *gin.Context) {
+		tenantID := c.Param("tenantId")
+
+		res, err := templateService.GetParentTemplates(tenantID)
+		if err != nil {
+			log.Println("error getting parent templates: ", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"data": res})
+	})
+
 	r.GET("/api/v1/tenants/:tenantId/templates", func(c *gin.Context) {
 		tenantID := c.Param("tenantId")
 

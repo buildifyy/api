@@ -3,7 +3,6 @@ package db
 import (
 	"api/pkg/models"
 	"context"
-	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,8 +12,9 @@ import (
 type Repository interface {
 	Ping() error
 	AddOne(data interface{}) error
-	GetAllTemplates(filter primitive.D) ([][]byte, error)
+	GetAllTemplates(filter primitive.D) ([]models.Template, error)
 	GetTemplate(filter primitive.D) (*models.Template, error)
+	GetTypeDropdownValues(collection string) ([]models.Dropdown, error)
 }
 
 type repository struct {
@@ -27,6 +27,23 @@ func NewRepository(client *mongo.Client) Repository {
 	}
 }
 
+func (r *repository) GetTypeDropdownValues(collection string) ([]models.Dropdown, error) {
+	c := r.client.Database("buildifyy").Collection(collection)
+	cursor, err := c.Find(context.Background(), bson.D{})
+	if err != nil {
+		log.Println("error finding dropdown values in database: ", err)
+		return nil, err
+	}
+
+	var results []models.Dropdown
+	if err := cursor.All(context.Background(), &results); err != nil {
+		log.Println("error parsing all data from database: ", err)
+		return nil, err
+	}
+
+	return results, nil
+}
+
 func (r *repository) Ping() error {
 	if err := r.client.Database("admin").RunCommand(context.Background(), bson.D{{"ping", 1}}).Err(); err != nil {
 		log.Println("error pinging database: ", err)
@@ -36,7 +53,7 @@ func (r *repository) Ping() error {
 	return nil
 }
 
-func (r *repository) GetAllTemplates(filter primitive.D) ([][]byte, error) {
+func (r *repository) GetAllTemplates(filter primitive.D) ([]models.Template, error) {
 	collection := r.client.Database("buildifyy").Collection("templates")
 	cursor, err := collection.Find(context.Background(), filter)
 	if err != nil {
@@ -50,17 +67,7 @@ func (r *repository) GetAllTemplates(filter primitive.D) ([][]byte, error) {
 		return nil, err
 	}
 
-	ret := make([][]byte, 0)
-	for _, data := range results {
-		bytesData, err := json.Marshal(data)
-		if err != nil {
-			log.Println("error marshalling data: ", err)
-			return nil, err
-		}
-		ret = append(ret, bytesData)
-	}
-
-	return ret, nil
+	return results, nil
 }
 
 func (r *repository) GetTemplate(filter primitive.D) (*models.Template, error) {
