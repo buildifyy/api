@@ -6,13 +6,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 )
 
 type Repository interface {
 	Ping() error
 	AddOne(data interface{}) error
-	GetAllTemplates(filter primitive.D) ([]models.Template, error)
+	GetAllTemplates(filter primitive.D, options *options.FindOptions) ([]models.Template, error)
 	GetTemplate(filter primitive.D) (*models.Template, error)
 	GetTypeDropdownValues(collection string) ([]models.Dropdown, error)
 }
@@ -53,9 +54,9 @@ func (r *repository) Ping() error {
 	return nil
 }
 
-func (r *repository) GetAllTemplates(filter primitive.D) ([]models.Template, error) {
+func (r *repository) GetAllTemplates(filter primitive.D, options *options.FindOptions) ([]models.Template, error) {
 	collection := r.client.Database("buildifyy").Collection("templates")
-	cursor, err := collection.Find(context.Background(), filter)
+	cursor, err := collection.Find(context.Background(), filter, options)
 	if err != nil {
 		log.Println("error finding data in database: ", err)
 		return nil, err

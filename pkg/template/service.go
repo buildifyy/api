@@ -4,6 +4,7 @@ import (
 	"api/pkg/db"
 	"api/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 )
 
@@ -25,7 +26,9 @@ func NewService(dbRepository db.Repository) Service {
 }
 
 func (s *service) GetParentTemplates(tenantId string) ([]models.Dropdown, error) {
-	templates, err := s.db.GetAllTemplates(bson.D{{"tenantId", tenantId}})
+	filter := bson.D{{"tenantId", tenantId}}
+	opts := options.Find().SetSort(bson.D{{"basicInformation.name", 1}})
+	templates, err := s.db.GetAllTemplates(filter, opts)
 	if err != nil {
 		log.Println("error fetching all templates: ", err)
 		return nil, err
@@ -54,8 +57,9 @@ func (s *service) AddTemplate(template models.Template) error {
 
 func (s *service) GetTemplates(tenantId string) ([]models.Template, error) {
 	filter := bson.D{{"tenantId", tenantId}}
+	opts := options.Find().SetSort(bson.D{{"basicInformation.externalId", 1}})
 
-	templates, err := s.db.GetAllTemplates(filter)
+	templates, err := s.db.GetAllTemplates(filter, opts)
 	if err != nil {
 		log.Println("error getting all templates: ", err)
 		return nil, err
