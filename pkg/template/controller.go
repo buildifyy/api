@@ -9,72 +9,87 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(r *gin.Engine, templateService Service) {
-	r.POST("/api/v1/tenants/:tenantId/templates", func(c *gin.Context) {
-		tenantID := c.Param("tenantId")
-		bytesData, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			log.Println("error reading request body: ", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
+type Controller interface {
+	CreateTemplate(c *gin.Context)
+	GetParentTemplates(c *gin.Context)
+	GetTemplatesList(c *gin.Context)
+	GetTemplateById(c *gin.Context)
+}
 
-		var templateToAdd models.Template
+type controller struct {
+	templateService Service
+}
 
-		if err := json.Unmarshal(bytesData, &templateToAdd); err != nil {
-			log.Println("error parsing request body: ", err)
-			c.Status(http.StatusBadRequest)
-			return
-		}
+func NewController(templateService Service) Controller {
+	return &controller{
+		templateService: templateService,
+	}
+}
 
-		templateToAdd.TenantID = tenantID
+func (c *controller) CreateTemplate(context *gin.Context) {
+	tenantID := context.Param("tenantId")
+	bytesData, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		log.Println("error reading request body: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
 
-		if err := templateService.AddTemplate(templateToAdd); err != nil {
-			log.Println("error adding template: ", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
+	var templateToAdd models.Template
 
-		c.Status(http.StatusCreated)
-	})
+	if err := json.Unmarshal(bytesData, &templateToAdd); err != nil {
+		log.Println("error parsing request body: ", err)
+		context.Status(http.StatusBadRequest)
+		return
+	}
 
-	r.GET("/api/v1/tenants/:tenantId/templates/parent", func(c *gin.Context) {
-		tenantID := c.Param("tenantId")
+	templateToAdd.TenantID = tenantID
 
-		res, err := templateService.GetParentTemplates(tenantID)
-		if err != nil {
-			log.Println("error getting parent templates: ", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
+	if err := c.templateService.AddTemplate(templateToAdd); err != nil {
+		log.Println("error adding template: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
 
-		c.JSON(http.StatusOK, gin.H{"data": res})
-	})
+	context.Status(http.StatusCreated)
+}
 
-	r.GET("/api/v1/tenants/:tenantId/templates", func(c *gin.Context) {
-		tenantID := c.Param("tenantId")
+func (c *controller) GetParentTemplates(context *gin.Context) {
+	tenantID := context.Param("tenantId")
 
-		res, err := templateService.GetTemplates(tenantID)
-		if err != nil {
-			log.Println("error getting templates: ", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
+	res, err := c.templateService.GetParentTemplates(tenantID)
+	if err != nil {
+		log.Println("error getting parent templates: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
 
-		c.JSON(http.StatusOK, gin.H{"data": res})
-	})
+	context.JSON(http.StatusOK, gin.H{"data": res})
+}
 
-	r.GET("/api/v1/tenants/:tenantId/templates/:templateId", func(c *gin.Context) {
-		tenantID := c.Param("tenantId")
-		templateID := c.Param("templateId")
+func (c *controller) GetTemplatesList(context *gin.Context) {
+	tenantID := context.Param("tenantId")
 
-		res, err := templateService.GetTemplate(tenantID, templateID)
-		if err != nil {
-			log.Println("error getting templates: ", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
+	res, err := c.templateService.GetTemplates(tenantID)
+	if err != nil {
+		log.Println("error getting templates: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
 
-		c.JSON(http.StatusOK, gin.H{"data": res})
-	})
+	context.JSON(http.StatusOK, gin.H{"data": res})
+}
+
+func (c *controller) GetTemplateById(context *gin.Context) {
+	tenantID := context.Param("tenantId")
+	templateID := context.Param("templateId")
+
+	res, err := c.templateService.GetTemplate(tenantID, templateID)
+	if err != nil {
+		log.Println("error getting templates: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"data": res})
 }

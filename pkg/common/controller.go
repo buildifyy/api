@@ -6,26 +6,39 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(r *gin.Engine, commonService Service) {
-	r.GET("/api/v1/attribute-types", func(c *gin.Context) {
-		values, err := commonService.GetAttributeDropdown()
-		if err != nil {
-			log.Println("error fetching attribute dropdown values: ", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
+type Controller interface {
+	GetAttributeTypes(c *gin.Context)
+	GetMetricTypes(c *gin.Context)
+}
 
-		c.JSON(http.StatusOK, gin.H{"data": values})
-	})
+type controller struct {
+	commonService Service
+}
 
-	r.GET("/api/v1/metric-types", func(c *gin.Context) {
-		values, err := commonService.GetMetricTypeDropdown()
-		if err != nil {
-			log.Println("error fetching metric type dropdown values: ", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
+func NewController(commonService Service) Controller {
+	return &controller{
+		commonService: commonService,
+	}
+}
 
-		c.JSON(http.StatusOK, gin.H{"data": values})
-	})
+func (c *controller) GetAttributeTypes(context *gin.Context) {
+	values, err := c.commonService.GetAttributeDropdown()
+	if err != nil {
+		log.Println("error fetching attribute dropdown values: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"data": values})
+}
+
+func (c *controller) GetMetricTypes(context *gin.Context) {
+	values, err := c.commonService.GetMetricTypeDropdown()
+	if err != nil {
+		log.Println("error fetching metric type dropdown values: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"data": values})
 }

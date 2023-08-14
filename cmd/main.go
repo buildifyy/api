@@ -36,22 +36,24 @@ func main() {
 	}()
 
 	dbRepository := db.NewRepository(client)
-	templateService := template.NewService(dbRepository)
-	commonService := common.NewService(dbRepository)
 
 	if err := dbRepository.Ping(); err != nil {
 		log.Println("error pinging database: ", err)
 		panic(err)
 	}
-
 	log.Println("successfully connected to database")
 
 	r := gin.Default()
 
 	r.Use(cors.Default())
 
-	template.RegisterRoutes(r, templateService)
-	common.RegisterRoutes(r, commonService)
+	templateService := template.NewService(dbRepository)
+	templateController := template.NewController(templateService)
+	template.RegisterRoutes(r, templateController)
+
+	commonService := common.NewService(dbRepository)
+	commonController := common.NewController(commonService)
+	common.RegisterRoutes(r, commonController)
 
 	if err = r.Run(); err != nil {
 		panic(err)
