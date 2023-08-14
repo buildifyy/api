@@ -45,6 +45,16 @@ func (c *controller) CreateTemplate(context *gin.Context) {
 
 	templateToAdd.TenantID = tenantID
 
+	parentTemplate, err := c.templateService.GetTemplate(tenantID, templateToAdd.BasicInformation.Parent)
+	if err != nil {
+		log.Println("error fetching parent template: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	templateToAdd.Attributes = append(parentTemplate.Attributes, templateToAdd.Attributes...)
+	templateToAdd.MetricTypes = append(parentTemplate.MetricTypes, templateToAdd.MetricTypes...)
+
 	if err := c.templateService.AddTemplate(templateToAdd); err != nil {
 		log.Println("error adding template: ", err)
 		context.Status(http.StatusInternalServerError)
