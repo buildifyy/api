@@ -1,12 +1,15 @@
 package template
 
 import (
+	"api/pkg/db"
 	"api/pkg/models"
 	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Controller interface {
@@ -44,6 +47,7 @@ func (c *controller) CreateTemplate(context *gin.Context) {
 	}
 
 	templateToAdd.TenantID = tenantID
+	templateToAdd.BasicInformation.ExternalID = strings.ToLower(templateToAdd.BasicInformation.ExternalID)
 
 	parentTemplate, err := c.templateService.GetTemplate(tenantID, templateToAdd.BasicInformation.Parent)
 	if err != nil {
@@ -57,6 +61,10 @@ func (c *controller) CreateTemplate(context *gin.Context) {
 
 	if err := c.templateService.AddTemplate(templateToAdd); err != nil {
 		log.Println("error adding template: ", err)
+		if errors.Is(err, db.ErrDuplicateTemplateExternalId) {
+			context.Status(http.StatusConflict)
+			return
+		}
 		context.Status(http.StatusInternalServerError)
 		return
 	}

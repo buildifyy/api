@@ -3,12 +3,15 @@ package db
 import (
 	"api/pkg/models"
 	"context"
+	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 )
+
+var ErrDuplicateTemplateExternalId = errors.New("template with externalId already exists")
 
 type Repository interface {
 	Ping() error
@@ -88,6 +91,9 @@ func (r *repository) AddOne(data interface{}) error {
 	_, err := collection.InsertOne(context.Background(), data)
 	if err != nil {
 		log.Println("error inserting data to database")
+		if mongo.IsDuplicateKeyError(err) {
+			return ErrDuplicateTemplateExternalId
+		}
 		return err
 	}
 
