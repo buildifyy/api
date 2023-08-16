@@ -15,16 +15,18 @@ type BasicInformation struct {
 }
 
 type Attribute struct {
-	Name       string `bson:"name" json:"name"`
-	DataType   string `bson:"dataType" json:"dataType"`
-	IsRequired bool   `bson:"isRequired" json:"isRequired"`
-	IsHidden   bool   `bson:"isHidden" json:"isHidden"`
+	Name           string `bson:"name" json:"name"`
+	DataType       string `bson:"dataType" json:"dataType"`
+	IsRequired     bool   `bson:"isRequired" json:"isRequired"`
+	IsHidden       bool   `bson:"isHidden" json:"isHidden"`
+	OwningTemplate string `bson:"owningTemplate" json:"owningTemplate"`
 }
 
 type MetricType struct {
-	Name       string   `bson:"name" json:"name"`
-	MetricType string   `bson:"metricType" json:"metricType"`
-	Metrics    []Metric `bson:"metrics" json:"metrics"`
+	Name           string   `bson:"name" json:"name"`
+	MetricType     string   `bson:"metricType" json:"metricType"`
+	Metrics        []Metric `bson:"metrics" json:"metrics"`
+	OwningTemplate string   `bson:"owningTemplate" json:"owningTemplate"`
 }
 
 type Metric struct {
