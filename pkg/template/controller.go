@@ -17,6 +17,7 @@ type Controller interface {
 	GetParentTemplates(c *gin.Context)
 	GetTemplatesList(c *gin.Context)
 	GetTemplateById(c *gin.Context)
+	UpdateTemplateById(c *gin.Context)
 }
 
 type controller struct {
@@ -27,6 +28,35 @@ func NewController(templateService Service) Controller {
 	return &controller{
 		templateService: templateService,
 	}
+}
+
+func (c *controller) UpdateTemplateById(context *gin.Context) {
+	tenantID := context.Param("tenantId")
+	bytesData, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		log.Println("error reading request body: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	var templateToUpdate models.Template
+
+	if err := json.Unmarshal(bytesData, &templateToUpdate); err != nil {
+		log.Println("error parsing request body: ", err)
+		context.Status(http.StatusBadRequest)
+		return
+	}
+
+	templateToUpdate.TenantID = tenantID
+	templateToUpdate.BasicInformation.ExternalID = strings.ToLower(templateToUpdate.BasicInformation.ExternalID)
+
+	if err := c.templateService.UpdateTemplate(tenantID, templateToUpdate); err != nil {
+		log.Println("error updating template: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	context.Status(http.StatusOK)
 }
 
 func (c *controller) CreateTemplate(context *gin.Context) {

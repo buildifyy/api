@@ -13,6 +13,7 @@ type Service interface {
 	GetTemplates(tenantId string) ([]models.Template, error)
 	GetTemplate(tenantId string, templateId string) (*models.Template, error)
 	GetParentTemplates(tenantId string) ([]models.Dropdown, error)
+	UpdateTemplate(tenantId string, template models.Template) error
 }
 
 type service struct {
@@ -23,6 +24,17 @@ func NewService(dbRepository db.Repository) Service {
 	return &service{
 		db: dbRepository,
 	}
+}
+
+func (s *service) UpdateTemplate(tenantId string, template models.Template) error {
+	filter := bson.D{{"tenantId", tenantId}, {"basicInformation.externalId", template.BasicInformation.ExternalID}}
+
+	if err := s.db.ReplaceTemplate(filter, template); err != nil {
+		log.Println("error updating template: ", err)
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) GetParentTemplates(tenantId string) ([]models.Dropdown, error) {
