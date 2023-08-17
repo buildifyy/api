@@ -6,53 +6,11 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"testing"
 )
 
-type MockedDbRepository struct {
-	mock.Mock
-}
-
-func (m *MockedDbRepository) Ping() error {
-	args := m.Called()
-	return args.Error(0)
-}
-
-func (m *MockedDbRepository) AddOne(data interface{}) error {
-	args := m.Called(data)
-	return args.Error(0)
-}
-
-func (m *MockedDbRepository) GetAllTemplates(filter primitive.D, options *options.FindOptions) ([]models.Template, error) {
-	args := m.Called(filter, options)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]models.Template), args.Error(1)
-}
-
-func (m *MockedDbRepository) GetTemplate(filter primitive.D) (*models.Template, error) {
-	args := m.Called(filter)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.Template), args.Error(1)
-}
-
-func (m *MockedDbRepository) GetTypeDropdownValues(collection string) ([]models.Dropdown, error) {
-	args := m.Called(collection)
-	return args.Get(0).([]models.Dropdown), args.Error(1)
-}
-
-func (m *MockedDbRepository) ReplaceTemplate(filter primitive.D, data interface{}) error {
-	args := m.Called(filter, data)
-	return args.Error(0)
-}
-
 func TestNewService(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -62,7 +20,7 @@ func TestNewService(t *testing.T) {
 }
 
 func TestService_AddTemplate_Success_CreatesTemplate(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -76,7 +34,7 @@ func TestService_AddTemplate_Success_CreatesTemplate(t *testing.T) {
 }
 
 func TestService_AddTemplate_Fails_ReturnsDuplicateExternalIdError(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -92,7 +50,7 @@ func TestService_AddTemplate_Fails_ReturnsDuplicateExternalIdError(t *testing.T)
 }
 
 func TestService_AddTemplate_Fails_ReturnsError(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -108,7 +66,7 @@ func TestService_AddTemplate_Fails_ReturnsError(t *testing.T) {
 }
 
 func TestService_GetTemplate_Success_ReturnsTemplate(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -135,7 +93,7 @@ func TestService_GetTemplate_Success_ReturnsTemplate(t *testing.T) {
 }
 
 func TestService_GetTemplate_Fails_ReturnsError(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -152,7 +110,7 @@ func TestService_GetTemplate_Fails_ReturnsError(t *testing.T) {
 }
 
 func TestService_GetTemplates_Success_ReturnsTemplates(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -191,7 +149,7 @@ func TestService_GetTemplates_Success_ReturnsTemplates(t *testing.T) {
 }
 
 func TestService_GetTemplates_Fails_ReturnsError(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -208,7 +166,7 @@ func TestService_GetTemplates_Fails_ReturnsError(t *testing.T) {
 }
 
 func TestService_UpdateTemplate_Success(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -222,7 +180,7 @@ func TestService_UpdateTemplate_Success(t *testing.T) {
 }
 
 func TestService_UpdateTemplate_Fails_ReturnsError(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -238,7 +196,7 @@ func TestService_UpdateTemplate_Fails_ReturnsError(t *testing.T) {
 }
 
 func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
@@ -289,7 +247,7 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 }
 
 func TestService_GetParentTemplates_Fails_ReturnsError(t *testing.T) {
-	mockRepository := &MockedDbRepository{}
+	mockRepository := &db.MockedDbRepository{}
 	mockService := &service{
 		db: mockRepository,
 	}
