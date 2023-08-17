@@ -3,10 +3,8 @@ package template
 import (
 	"api/pkg/db"
 	"api/pkg/models"
-	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -32,22 +30,14 @@ func NewController(templateService Service) Controller {
 
 func (c *controller) UpdateTemplateById(context *gin.Context) {
 	tenantID := context.Param("tenantId")
-	bytesData, err := io.ReadAll(context.Request.Body)
-	if err != nil {
-		log.Println("error reading request body: ", err)
-		context.Status(http.StatusInternalServerError)
-		return
-	}
 
 	var templateToUpdate models.Template
-
-	if err := json.Unmarshal(bytesData, &templateToUpdate); err != nil {
+	if err := context.ShouldBindJSON(&templateToUpdate); err != nil {
 		log.Println("error parsing request body: ", err)
 		context.Status(http.StatusBadRequest)
 		return
 	}
 
-	templateToUpdate.TenantID = tenantID
 	templateToUpdate.BasicInformation.ExternalID = strings.ToLower(templateToUpdate.BasicInformation.ExternalID)
 
 	if err := c.templateService.UpdateTemplate(tenantID, templateToUpdate); err != nil {
@@ -61,16 +51,9 @@ func (c *controller) UpdateTemplateById(context *gin.Context) {
 
 func (c *controller) CreateTemplate(context *gin.Context) {
 	tenantID := context.Param("tenantId")
-	bytesData, err := io.ReadAll(context.Request.Body)
-	if err != nil {
-		log.Println("error reading request body: ", err)
-		context.Status(http.StatusInternalServerError)
-		return
-	}
-
 	var templateToAdd models.Template
 
-	if err := json.Unmarshal(bytesData, &templateToAdd); err != nil {
+	if err := context.ShouldBindJSON(&templateToAdd); err != nil {
 		log.Println("error parsing request body: ", err)
 		context.Status(http.StatusBadRequest)
 		return
