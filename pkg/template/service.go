@@ -117,7 +117,7 @@ func (s *service) AddTemplate(tenantId string, template models.Template) error {
 	template.Attributes = append(parentTemplate.Attributes, template.Attributes...)
 	template.MetricTypes = append(parentTemplate.MetricTypes, template.MetricTypes...)
 
-	if err := s.db.AddOne(template); err != nil {
+	if err := s.db.AddOne("templates", template); err != nil {
 		log.Println("error inserting template: ", err)
 		return err
 	}

@@ -15,7 +15,7 @@ var ErrDuplicateTemplateExternalId = errors.New("template with externalId alread
 
 type Repository interface {
 	Ping() error
-	AddOne(data interface{}) error
+	AddOne(collectionName string, data interface{}) error
 	GetAllTemplates(filter primitive.D, options *options.FindOptions) ([]models.Template, error)
 	GetTemplate(filter primitive.D) (*models.Template, error)
 	GetTypeDropdownValues(collection string) ([]models.Dropdown, error)
@@ -98,8 +98,8 @@ func (r *repository) GetTemplate(filter primitive.D) (*models.Template, error) {
 	return &result, nil
 }
 
-func (r *repository) AddOne(data interface{}) error {
-	collection := r.client.Database("buildifyy").Collection("templates")
+func (r *repository) AddOne(collectionName string, data interface{}) error {
+	collection := r.client.Database("buildifyy").Collection(collectionName)
 	_, err := collection.InsertOne(context.Background(), data)
 	if err != nil {
 		log.Println("error inserting data to database")

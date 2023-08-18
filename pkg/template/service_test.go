@@ -36,7 +36,7 @@ func TestService_AddTemplate_Success_CreatesTemplate(t *testing.T) {
 		Attributes:  make([]models.TemplateAttribute, 0),
 		MetricTypes: make([]models.TemplateMetricType, 0),
 	}, nil)
-	mockRepository.On("AddOne", mock.AnythingOfType("models.Template")).Return(nil)
+	mockRepository.On("AddOne", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(nil)
 
 	actual := mockService.AddTemplate("the-binary", models.Template{
 		TenantID: "the-binary",
@@ -96,7 +96,7 @@ func TestService_AddTemplate_Fails_ReturnsDuplicateExternalIdError(t *testing.T)
 		Attributes:  make([]models.TemplateAttribute, 0),
 		MetricTypes: make([]models.TemplateMetricType, 0),
 	}, nil)
-	mockRepository.On("AddOne", mock.AnythingOfType("models.Template")).Return(expected)
+	mockRepository.On("AddOne", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(expected)
 
 	actual := mockService.AddTemplate("the-binary", models.Template{})
 	assert.Equal(t, expected, actual)
@@ -139,7 +139,7 @@ func TestService_AddTemplate_Fails_ReturnsError(t *testing.T) {
 		Attributes:  make([]models.TemplateAttribute, 0),
 		MetricTypes: make([]models.TemplateMetricType, 0),
 	}, nil)
-	mockRepository.On("AddOne", mock.AnythingOfType("models.Template")).Return(expected)
+	mockRepository.On("AddOne", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(expected)
 
 	actual := mockService.AddTemplate("the-binary", models.Template{})
 	assert.Equal(t, expected, actual)

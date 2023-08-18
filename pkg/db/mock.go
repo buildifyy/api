@@ -16,8 +16,8 @@ func (m *MockedDbRepository) Ping() error {
 	return args.Error(0)
 }
 
-func (m *MockedDbRepository) AddOne(data interface{}) error {
-	args := m.Called(data)
+func (m *MockedDbRepository) AddOne(collectionName string, data interface{}) error {
+	args := m.Called(collectionName, data)
 	return args.Error(0)
 }
 
