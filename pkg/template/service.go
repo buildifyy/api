@@ -143,7 +143,7 @@ func (s *service) GetTemplate(tenantId string, templateId string) (*models.Templ
 
 	template, err := s.db.GetTemplate(filter)
 	if err != nil {
-		log.Println("error getting all templates: ", err)
+		log.Println("error getting template: ", err)
 		return nil, err
 	}
 
