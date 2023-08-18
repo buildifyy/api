@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type Controller interface {
@@ -38,8 +37,6 @@ func (c *controller) UpdateTemplateById(context *gin.Context) {
 		return
 	}
 
-	templateToUpdate.BasicInformation.ExternalID = strings.ToLower(templateToUpdate.BasicInformation.ExternalID)
-
 	if err := c.templateService.UpdateTemplate(tenantID, templateToUpdate); err != nil {
 		log.Println("error updating template: ", err)
 		context.Status(http.StatusInternalServerError)
@@ -59,20 +56,7 @@ func (c *controller) CreateTemplate(context *gin.Context) {
 		return
 	}
 
-	templateToAdd.TenantID = tenantID
-	templateToAdd.BasicInformation.ExternalID = strings.ToLower(templateToAdd.BasicInformation.ExternalID)
-
-	parentTemplate, err := c.templateService.GetTemplate(tenantID, templateToAdd.BasicInformation.Parent)
-	if err != nil {
-		log.Println("error fetching parent template: ", err)
-		context.Status(http.StatusInternalServerError)
-		return
-	}
-
-	templateToAdd.Attributes = append(parentTemplate.Attributes, templateToAdd.Attributes...)
-	templateToAdd.MetricTypes = append(parentTemplate.MetricTypes, templateToAdd.MetricTypes...)
-
-	if err := c.templateService.AddTemplate(templateToAdd); err != nil {
+	if err := c.templateService.AddTemplate(tenantID, templateToAdd); err != nil {
 		log.Println("error adding template: ", err)
 		if errors.Is(err, db.ErrDuplicateTemplateExternalId) {
 			context.Status(http.StatusConflict)

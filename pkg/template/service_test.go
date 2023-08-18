@@ -25,9 +25,53 @@ func TestService_AddTemplate_Success_CreatesTemplate(t *testing.T) {
 		db: mockRepository,
 	}
 
+	mockRepository.On("GetTemplate", mock.AnythingOfType("primitive.D")).Return(&models.Template{
+		TenantID: "the-binary",
+		BasicInformation: models.TemplateBasicInformation{
+			Parent:     "",
+			Name:       "Asset",
+			ExternalID: "p.com.asset",
+			IsCustom:   false,
+		},
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
+	}, nil)
 	mockRepository.On("AddOne", mock.AnythingOfType("models.Template")).Return(nil)
 
-	actual := mockService.AddTemplate(models.Template{})
+	actual := mockService.AddTemplate("the-binary", models.Template{
+		TenantID: "the-binary",
+		BasicInformation: models.TemplateBasicInformation{
+			Name:       "testtemplate1",
+			Parent:     "p.com.asset",
+			ExternalID: "testtemplate1",
+			IsCustom:   true,
+		},
+		Attributes: []models.TemplateAttribute{
+			{
+				Name:           "attribute1",
+				DataType:       "integer",
+				IsRequired:     false,
+				IsHidden:       false,
+				OwningTemplate: "testtemplate1",
+			},
+		},
+		MetricTypes: []models.TemplateMetricType{
+			{
+				Name:       "metrictype1",
+				MetricType: "integer",
+				Metrics: []models.TemplateMetric{
+					{
+						Name:         "metric1",
+						IsManual:     false,
+						Value:        nil,
+						IsCalculated: false,
+						IsSourced:    false,
+					},
+				},
+				OwningTemplate: "testtemplate1",
+			},
+		},
+	})
 	assert.Equal(t, nil, actual)
 
 	mockRepository.AssertExpectations(t)
@@ -41,10 +85,37 @@ func TestService_AddTemplate_Fails_ReturnsDuplicateExternalIdError(t *testing.T)
 
 	expected := db.ErrDuplicateTemplateExternalId
 
+	mockRepository.On("GetTemplate", mock.AnythingOfType("primitive.D")).Return(&models.Template{
+		TenantID: "the-binary",
+		BasicInformation: models.TemplateBasicInformation{
+			Parent:     "",
+			Name:       "Asset",
+			ExternalID: "p.com.asset",
+			IsCustom:   false,
+		},
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
+	}, nil)
 	mockRepository.On("AddOne", mock.AnythingOfType("models.Template")).Return(expected)
 
-	actual := mockService.AddTemplate(models.Template{})
+	actual := mockService.AddTemplate("the-binary", models.Template{})
 	assert.Equal(t, expected, actual)
+
+	mockRepository.AssertExpectations(t)
+}
+
+func TestService_AddTemplate_FailsGettingParentTemplate_ReturnsError(t *testing.T) {
+	mockRepository := &db.MockedDbRepository{}
+	mockService := &service{
+		db: mockRepository,
+	}
+
+	expectedErr := errors.New("error getting parent template")
+
+	mockRepository.On("GetTemplate", mock.AnythingOfType("primitive.D")).Return(nil, expectedErr)
+
+	actualErr := mockService.AddTemplate("the-binary", models.Template{})
+	assert.Equal(t, expectedErr, actualErr)
 
 	mockRepository.AssertExpectations(t)
 }
@@ -57,9 +128,20 @@ func TestService_AddTemplate_Fails_ReturnsError(t *testing.T) {
 
 	expected := errors.New("error creating template")
 
+	mockRepository.On("GetTemplate", mock.AnythingOfType("primitive.D")).Return(&models.Template{
+		TenantID: "the-binary",
+		BasicInformation: models.TemplateBasicInformation{
+			Parent:     "",
+			Name:       "Asset",
+			ExternalID: "p.com.asset",
+			IsCustom:   false,
+		},
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
+	}, nil)
 	mockRepository.On("AddOne", mock.AnythingOfType("models.Template")).Return(expected)
 
-	actual := mockService.AddTemplate(models.Template{})
+	actual := mockService.AddTemplate("the-binary", models.Template{})
 	assert.Equal(t, expected, actual)
 
 	mockRepository.AssertExpectations(t)
@@ -73,7 +155,7 @@ func TestService_GetTemplate_Success_ReturnsTemplate(t *testing.T) {
 
 	expected := &models.Template{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			ExternalID: "testtemplate",
 			Name:       "Test Template",
@@ -119,7 +201,7 @@ func TestService_GetTemplates_Success_ReturnsTemplates(t *testing.T) {
 	expected = append(expected,
 		models.Template{
 			TenantID: "the-binary",
-			BasicInformation: models.BasicInformation{
+			BasicInformation: models.TemplateBasicInformation{
 				Parent:     "p.com.asset",
 				ExternalID: "testtemplate",
 				Name:       "Test Template",
@@ -129,7 +211,7 @@ func TestService_GetTemplates_Success_ReturnsTemplates(t *testing.T) {
 			MetricTypes: nil,
 		}, models.Template{
 			TenantID: "the-binary",
-			BasicInformation: models.BasicInformation{
+			BasicInformation: models.TemplateBasicInformation{
 				Parent:     "p.com.asset",
 				ExternalID: "testtemplate2",
 				Name:       "Test Template 2",
@@ -173,7 +255,64 @@ func TestService_UpdateTemplate_Success(t *testing.T) {
 
 	mockRepository.On("ReplaceTemplate", mock.AnythingOfType("primitive.D"), mock.AnythingOfType("models.Template")).Return(nil)
 
-	actualErr := mockService.UpdateTemplate("the-binary", models.Template{})
+	actualErr := mockService.UpdateTemplate("the-binary", models.Template{
+		TenantID: "the-binary",
+		BasicInformation: models.TemplateBasicInformation{
+			Name:       "testtemplate1",
+			Parent:     "p.com.asset",
+			ExternalID: "testtemplate1",
+			IsCustom:   true,
+		},
+		Attributes: []models.TemplateAttribute{
+			{
+				ID:             "412ba829-eca5-4513-97e7-f30c34f03a70",
+				Name:           "attribute1",
+				DataType:       "integer",
+				IsRequired:     false,
+				IsHidden:       false,
+				OwningTemplate: "testtemplate1",
+			},
+			{
+				Name:           "attribute2",
+				DataType:       "integer",
+				IsRequired:     false,
+				IsHidden:       false,
+				OwningTemplate: "testtemplate1",
+			},
+		},
+		MetricTypes: []models.TemplateMetricType{
+			{
+				ID:         "549fe288-63ee-480a-9a1d-85d4021b77ca",
+				Name:       "metrictype1",
+				MetricType: "integer",
+				Metrics: []models.TemplateMetric{
+					{
+						ID:           "90f336bb-1614-42ab-800b-1b1f821161c1",
+						Name:         "metric1",
+						IsManual:     false,
+						Value:        nil,
+						IsCalculated: false,
+						IsSourced:    false,
+					},
+				},
+				OwningTemplate: "testtemplate1",
+			},
+			{
+				Name:       "metrictype2",
+				MetricType: "integer",
+				Metrics: []models.TemplateMetric{
+					{
+						Name:         "metric1",
+						IsManual:     false,
+						Value:        nil,
+						IsCalculated: false,
+						IsSourced:    false,
+					},
+				},
+				OwningTemplate: "testtemplate1",
+			},
+		},
+	})
 	assert.Nil(t, actualErr)
 
 	mockRepository.AssertExpectations(t)
@@ -215,7 +354,7 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 	templates := []models.Template{
 		{
 			TenantID: "the-binary",
-			BasicInformation: models.BasicInformation{
+			BasicInformation: models.TemplateBasicInformation{
 				Parent:     "p.com.asset",
 				ExternalID: "testtemplate1",
 				Name:       "Test Template 1",
@@ -226,7 +365,7 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 		},
 		{
 			TenantID: "the-binary",
-			BasicInformation: models.BasicInformation{
+			BasicInformation: models.TemplateBasicInformation{
 				Parent:     "p.com.asset",
 				ExternalID: "testtemplate2",
 				Name:       "Test Template 2",

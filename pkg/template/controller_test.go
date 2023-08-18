@@ -19,8 +19,8 @@ type MockService struct {
 	mock.Mock
 }
 
-func (m *MockService) AddTemplate(template models.Template) error {
-	args := m.Called(template)
+func (m *MockService) AddTemplate(tenantId string, template models.Template) error {
+	args := m.Called(tenantId, template)
 	return args.Error(0)
 }
 
@@ -81,33 +81,21 @@ func TestController_CreateTemplate_Success(t *testing.T) {
 	ctx.AddParam("tenantId", "the-binary")
 	jsonBytes, err := json.Marshal(models.Template{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	})
 	if err != nil {
 		panic(err)
 	}
 	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(jsonBytes))
-	parentTemplateResponse := &models.Template{
-		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
-			Parent:     "",
-			Name:       "Asset",
-			ExternalID: "p.com.asset",
-			IsCustom:   false,
-		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
-	}
 
-	mockService.On("GetTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(parentTemplateResponse, nil)
-	mockService.On("AddTemplate", mock.AnythingOfType("models.Template")).Return(nil)
+	mockService.On("AddTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(nil)
 
 	mockController.CreateTemplate(ctx)
 
@@ -135,14 +123,14 @@ func TestController_CreateTemplate_FailsToParseRequestBody_ReturnsBadRequest(t *
 	//bad json request to create a template
 	jsonBytes, err := json.Marshal([]models.Template{{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	}})
 	if err != nil {
 		panic(err)
@@ -152,48 +140,6 @@ func TestController_CreateTemplate_FailsToParseRequestBody_ReturnsBadRequest(t *
 	mockController.CreateTemplate(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, ctx.Writer.Status())
-	mockService.AssertExpectations(t)
-}
-
-func TestController_CreateTemplate_FailsToGetParentTemplateDetails_ReturnsInternalServerError(t *testing.T) {
-	mockService := &MockService{}
-	mockController := &controller{
-		templateService: mockService,
-	}
-
-	gin.SetMode(gin.TestMode)
-	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	ctx.Request = &http.Request{
-		Header: make(http.Header),
-	}
-	ctx.Request.Header.Set("Content-Type", "application/json")
-	ctx.Request.Method = "POST"
-	ctx.AddParam("tenantId", "the-binary")
-
-	//bad json request to create a template
-	jsonBytes, err := json.Marshal(models.Template{
-		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
-			Parent:     "p.com.asset",
-			Name:       "Test Template 1",
-			ExternalID: "testtemplate1",
-			IsCustom:   true,
-		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
-	})
-	if err != nil {
-		panic(err)
-	}
-	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(jsonBytes))
-
-	expectedErr := errors.New("error getting parent template")
-	mockService.On("GetTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, expectedErr)
-
-	mockController.CreateTemplate(ctx)
-
-	assert.Equal(t, http.StatusInternalServerError, ctx.Writer.Status())
 	mockService.AssertExpectations(t)
 }
 
@@ -216,34 +162,22 @@ func TestController_CreateTemplate_FailsToCreateTemplate_ReturnsInternalServerEr
 	//bad json request to create a template
 	jsonBytes, err := json.Marshal(models.Template{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	})
 	if err != nil {
 		panic(err)
 	}
 	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(jsonBytes))
-	parentTemplateResponse := &models.Template{
-		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
-			Parent:     "",
-			Name:       "Asset",
-			ExternalID: "p.com.asset",
-			IsCustom:   false,
-		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
-	}
 
 	expectedErr := errors.New("error adding new template")
-	mockService.On("GetTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(parentTemplateResponse, nil)
-	mockService.On("AddTemplate", mock.AnythingOfType("models.Template")).Return(expectedErr)
+	mockService.On("AddTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(expectedErr)
 
 	mockController.CreateTemplate(ctx)
 
@@ -270,34 +204,22 @@ func TestController_CreateTemplate_FailsToCreateTemplateWhenTemplateAlreadyExist
 	//bad json request to create a template
 	jsonBytes, err := json.Marshal(models.Template{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	})
 	if err != nil {
 		panic(err)
 	}
 	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(jsonBytes))
-	parentTemplateResponse := &models.Template{
-		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
-			Parent:     "",
-			Name:       "Asset",
-			ExternalID: "p.com.asset",
-			IsCustom:   false,
-		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
-	}
 
 	expectedErr := db.ErrDuplicateTemplateExternalId
-	mockService.On("GetTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(parentTemplateResponse, nil)
-	mockService.On("AddTemplate", mock.AnythingOfType("models.Template")).Return(expectedErr)
+	mockService.On("AddTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(expectedErr)
 
 	mockController.CreateTemplate(ctx)
 
@@ -324,14 +246,14 @@ func TestController_UpdateTemplateById_Success(t *testing.T) {
 
 	jsonBytes, err := json.Marshal(models.Template{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	})
 	if err != nil {
 		panic(err)
@@ -367,14 +289,14 @@ func TestController_UpdateTemplateById_FailsToParseRequestBody_ReturnsBadRequest
 	//bad json request to create a template
 	jsonBytes, err := json.Marshal([]models.Template{{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	}})
 	if err != nil {
 		panic(err)
@@ -407,14 +329,14 @@ func TestController_UpdateTemplateById_FailsToUpdateTemplate_ReturnsInternalServ
 	//bad json request to create a template
 	jsonBytes, err := json.Marshal(models.Template{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	})
 	if err != nil {
 		panic(err)
@@ -506,14 +428,14 @@ func TestController_GetTemplatesList_Success(t *testing.T) {
 
 	templatesResponse := []models.Template{{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	}}
 
 	mockService.On("GetTemplates", mock.AnythingOfType("string")).Return(templatesResponse, nil)
@@ -567,14 +489,14 @@ func TestController_GetTemplatesById_Success(t *testing.T) {
 
 	templateResponse := &models.Template{
 		TenantID: "the-binary",
-		BasicInformation: models.BasicInformation{
+		BasicInformation: models.TemplateBasicInformation{
 			Parent:     "p.com.asset",
 			Name:       "Test Template 1",
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.Attribute, 0),
-		MetricTypes: make([]models.MetricType, 0),
+		Attributes:  make([]models.TemplateAttribute, 0),
+		MetricTypes: make([]models.TemplateMetricType, 0),
 	}
 
 	mockService.On("GetTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(templateResponse, nil)

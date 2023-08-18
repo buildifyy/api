@@ -1,20 +1,21 @@
 package models
 
 type Template struct {
-	TenantID         string           `bson:"tenantId" json:"-"`
-	BasicInformation BasicInformation `bson:"basicInformation" json:"basicInformation"`
-	Attributes       []Attribute      `bson:"attributes" json:"attributes"`
-	MetricTypes      []MetricType     `bson:"metricTypes" json:"metricTypes"`
+	TenantID         string                   `bson:"tenantId" json:"-"`
+	BasicInformation TemplateBasicInformation `bson:"basicInformation" json:"basicInformation"`
+	Attributes       []TemplateAttribute      `bson:"attributes" json:"attributes"`
+	MetricTypes      []TemplateMetricType     `bson:"metricTypes" json:"metricTypes"`
 }
 
-type BasicInformation struct {
+type TemplateBasicInformation struct {
 	Name       string `bson:"name" json:"name"`
 	Parent     string `bson:"parent" json:"parent"`
 	ExternalID string `bson:"externalId" json:"externalId"`
 	IsCustom   bool   `bson:"isCustom" json:"isCustom"`
 }
 
-type Attribute struct {
+type TemplateAttribute struct {
+	ID             string `bson:"id" json:"id"`
 	Name           string `bson:"name" json:"name"`
 	DataType       string `bson:"dataType" json:"dataType"`
 	IsRequired     bool   `bson:"isRequired" json:"isRequired"`
@@ -22,14 +23,16 @@ type Attribute struct {
 	OwningTemplate string `bson:"owningTemplate" json:"owningTemplate"`
 }
 
-type MetricType struct {
-	Name           string   `bson:"name" json:"name"`
-	MetricType     string   `bson:"metricType" json:"metricType"`
-	Metrics        []Metric `bson:"metrics" json:"metrics"`
-	OwningTemplate string   `bson:"owningTemplate" json:"owningTemplate"`
+type TemplateMetricType struct {
+	ID             string           `bson:"id" json:"id"`
+	Name           string           `bson:"name" json:"name"`
+	MetricType     string           `bson:"metricType" json:"metricType"`
+	Metrics        []TemplateMetric `bson:"metrics" json:"metrics"`
+	OwningTemplate string           `bson:"owningTemplate" json:"owningTemplate"`
 }
 
-type Metric struct {
+type TemplateMetric struct {
+	ID           string      `bson:"id" json:"id"`
 	Name         string      `bson:"name" json:"name"`
 	IsManual     bool        `bson:"isManual" json:"isManual"`
 	Value        interface{} `bson:"value" json:"value"`
