@@ -1,16 +1,16 @@
 package models
 
 type Instance struct {
-	BasicInformation InstanceBasicInformation `bson:"basicInformation" json:"basicInformation"`
-	Attributes       []InstanceAttribute      `bson:"attributes" json:"attributes"`
-	MetricTypes      []InstanceMetricType     `bson:"metricTypes" json:"metricTypes"`
-	TenantID         string                   `bson:"tenantId" json:"tenantId"`
+	BasicInformations []InstanceBasicInformation `bson:"basicInformation" json:"basicInformation"`
+	Attributes        []InstanceAttribute        `bson:"attributes" json:"attributes"`
+	MetricTypes       []InstanceMetricType       `bson:"metricTypes" json:"metricTypes"`
+	TenantID          string                     `bson:"tenantId" json:"tenantId"`
 }
 
 type InstanceBasicInformation struct {
-	Name       string `bson:"name" json:"name"`
-	ExternalID string `bson:"externalId" json:"externalId"`
-	Parent     string `bson:"parent" json:"parent"`
+	ID    string `bson:"id" json:"id"`
+	Name  string `bson:"name" json:"name"`
+	Value string `bson:"value" json:"value"`
 }
 
 type InstanceAttribute struct {

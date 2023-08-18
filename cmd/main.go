@@ -3,6 +3,7 @@ package main
 import (
 	"api/pkg/common"
 	"api/pkg/db"
+	"api/pkg/instance"
 	"api/pkg/template"
 	"context"
 	"github.com/gin-contrib/cors"
@@ -50,6 +51,10 @@ func main() {
 	templateService := template.NewService(dbRepository)
 	templateController := template.NewController(templateService)
 	template.RegisterRoutes(r, templateController)
+
+	instanceService := instance.NewService(dbRepository)
+	instanceController := instance.NewController(instanceService)
+	instance.RegisterRoutes(r, instanceController)
 
 	commonService := common.NewService(dbRepository)
 	commonController := common.NewController(commonService)
