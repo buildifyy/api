@@ -7,6 +7,25 @@ type Instance struct {
 	TenantID          string                     `bson:"tenantId" json:"tenantId"`
 }
 
+type InstanceFormMetaData struct {
+	BasicInformation InstanceMetaData `json:"basicInformation"`
+	Attributes       InstanceMetaData `json:"attributes"`
+}
+
+type InstanceMetaData struct {
+	Fields []InstanceMetaDataFields `json:"fields"`
+}
+
+type InstanceMetaDataFields struct {
+	ID         string `json:"id"`
+	Label      string `json:"label"`
+	InfoText   string `json:"infoText"`
+	TypeLabel  string `json:"typeLabel"`
+	Type       string `json:"type"`
+	IsRequired bool   `json:"isRequired"`
+	IsHidden   bool   `json:"isHidden"`
+}
+
 type InstanceBasicInformation struct {
 	ID    string `bson:"id" json:"id"`
 	Name  string `bson:"name" json:"name"`

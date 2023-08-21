@@ -3,15 +3,16 @@ package instance
 import (
 	"api/pkg/db"
 	"api/pkg/models"
-	"github.com/google/uuid"
+	"cmp"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"slices"
+	"strings"
 )
 
 type Service interface {
 	AddInstance(tenantId string, instance models.Instance) error
-	GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.Instance, error)
+	GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error)
 }
 
 type service struct {
@@ -24,7 +25,7 @@ func NewService(dbRepository db.Repository) Service {
 	}
 }
 
-func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.Instance, error) {
+func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error) {
 	parentTemplateFilter := bson.D{{"tenantId", tenantId}, {"basicInformation.externalId", parentTemplateExternalId}}
 	parentTemplate, err := s.db.GetTemplate(parentTemplateFilter)
 	if err != nil {
@@ -32,51 +33,63 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 		return nil, err
 	}
 
-	var ret models.Instance
+	attributeTypes, err := s.db.GetTypeDropdownValues("attribute_types")
+	if err != nil {
+		log.Println("error finding attribute types: ", err)
+		return nil, err
+	}
+	slices.SortFunc(attributeTypes, func(a, b models.Dropdown) int {
+		return cmp.Compare(strings.ToLower(a.Label), strings.ToLower(b.Label))
+	})
+
+	var ret models.InstanceFormMetaData
 
 	parentAttributes := parentTemplate.Attributes
 
-	ret.BasicInformations = make([]models.InstanceBasicInformation, 0)
+	ret.BasicInformation.Fields = make([]models.InstanceMetaDataFields, 0)
 	if nameAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
 		return attribute.ID == "c2134cea-ddd2-43f7-a775-e4d12742ef79"
 	}); nameAttributeExists {
-		ret.BasicInformations = append(ret.BasicInformations, models.InstanceBasicInformation{
-			ID:   "c2134cea-ddd2-43f7-a775-e4d12742ef79",
-			Name: "Name",
+		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
+			Label:      "Name",
+			InfoText:   "This will be the name of your instance.",
+			Type:       "string",
+			IsRequired: true,
+			IsHidden:   false,
 		})
 	}
 
 	if externalIdAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
 		return attribute.ID == "a25aefe5-b5aa-44b9-9ddf-1f911d1af502"
 	}); externalIdAttributeExists {
-		ret.BasicInformations = append(ret.BasicInformations, models.InstanceBasicInformation{
-			ID:   "a25aefe5-b5aa-44b9-9ddf-1f911d1af502",
-			Name: "External ID",
+		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
+			Label:      "External ID",
+			InfoText:   "A unique identifier for your instance.",
+			Type:       "string",
+			IsRequired: true,
+			IsHidden:   false,
 		})
 	}
 
-	parentID, _ := uuid.NewUUID()
-	ret.BasicInformations = append(ret.BasicInformations, models.InstanceBasicInformation{
-		ID:    parentID.String(),
-		Name:  "Parent",
-		Value: parentTemplateExternalId,
-	})
-
-	ret.Attributes = make([]models.InstanceAttribute, 0)
+	ret.Attributes.Fields = make([]models.InstanceMetaDataFields, 0)
 	for _, attr := range parentAttributes {
 		if attr.ID != "a25aefe5-b5aa-44b9-9ddf-1f911d1af502" && attr.ID != "c2134cea-ddd2-43f7-a775-e4d12742ef79" {
-			ret.Attributes = append(ret.Attributes, models.InstanceAttribute{
+			attributeTypeIndex, _ := slices.BinarySearchFunc(attributeTypes, models.Dropdown{
+				Value: attr.DataType,
+			}, func(dropdown models.Dropdown, dropdown2 models.Dropdown) int {
+				return cmp.Compare(dropdown.Value, dropdown2.Value)
+			})
+			ret.Attributes.Fields = append(ret.Attributes.Fields, models.InstanceMetaDataFields{
 				ID:         attr.ID,
-				Name:       attr.Name,
-				DataType:   attr.DataType,
+				Label:      attr.Name,
+				TypeLabel:  attributeTypes[attributeTypeIndex].Label,
+				Type:       attr.DataType,
+				InfoText:   "",
 				IsRequired: attr.IsRequired,
 				IsHidden:   attr.IsHidden,
 			})
 		}
 	}
-
-	ret.MetricTypes = make([]models.InstanceMetricType, 0)
-	ret.TenantID = tenantId
 
 	return &ret, nil
 }
