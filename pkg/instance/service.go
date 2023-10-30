@@ -4,10 +4,11 @@ import (
 	"api/pkg/db"
 	"api/pkg/models"
 	"cmp"
-	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"slices"
 	"strings"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Service interface {
@@ -26,7 +27,7 @@ func NewService(dbRepository db.Repository) Service {
 }
 
 func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error) {
-	parentTemplateFilter := bson.D{{"tenantId", tenantId}, {"basicInformation.externalId", parentTemplateExternalId}}
+	parentTemplateFilter := bson.D{{Key: "tenantId", Value: tenantId}, {Key: "basicInformation.externalId", Value: parentTemplateExternalId}}
 	parentTemplate, err := s.db.GetTemplate(parentTemplateFilter)
 	if err != nil {
 		log.Println("error getting template: ", err)

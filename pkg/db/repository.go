@@ -45,7 +45,7 @@ func (r *repository) ReplaceTemplate(filter primitive.D, data interface{}) error
 
 func (r *repository) GetTypeDropdownValues(collection string) ([]models.Dropdown, error) {
 	c := r.client.Database("buildifyy").Collection(collection)
-	opts := options.Find().SetSort(bson.D{{"label", 1}})
+	opts := options.Find().SetSort(bson.D{{Key: "label", Value: 1}})
 	cursor, err := c.Find(context.Background(), bson.D{}, opts)
 	if err != nil {
 		log.Println("error finding dropdown values in database: ", err)

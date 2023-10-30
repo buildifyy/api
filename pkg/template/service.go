@@ -3,11 +3,12 @@ package template
 import (
 	"api/pkg/db"
 	"api/pkg/models"
+	"log"
+	"strings"
+
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"strings"
 )
 
 type Service interface {
@@ -31,7 +32,7 @@ func NewService(dbRepository db.Repository) Service {
 func (s *service) UpdateTemplate(tenantId string, template models.Template) error {
 	template.TenantID = tenantId
 	template.BasicInformation.ExternalID = strings.ToLower(template.BasicInformation.ExternalID)
-	filter := bson.D{{"tenantId", tenantId}, {"basicInformation.externalId", template.BasicInformation.ExternalID}}
+	filter := bson.D{{Key: "tenantId", Value: tenantId}, {Key: "basicInformation.externalId", Value: template.BasicInformation.ExternalID}}
 
 	for i, attribute := range template.Attributes {
 		if attribute.ID == "" {
@@ -65,8 +66,8 @@ func (s *service) UpdateTemplate(tenantId string, template models.Template) erro
 }
 
 func (s *service) GetParentTemplates(tenantId string) ([]models.Dropdown, error) {
-	filter := bson.D{{"tenantId", tenantId}}
-	opts := options.Find().SetSort(bson.D{{"basicInformation.name", 1}})
+	filter := bson.D{{Key: "tenantId", Value: tenantId}}
+	opts := options.Find().SetSort(bson.D{{Key: "basicInformation.name", Value: 1}})
 	templates, err := s.db.GetAllTemplates(filter, opts)
 	if err != nil {
 		log.Println("error fetching all templates: ", err)
@@ -126,8 +127,8 @@ func (s *service) AddTemplate(tenantId string, template models.Template) error {
 }
 
 func (s *service) GetTemplates(tenantId string) ([]models.Template, error) {
-	filter := bson.D{{"tenantId", tenantId}}
-	opts := options.Find().SetSort(bson.D{{"basicInformation.externalId", 1}})
+	filter := bson.D{{Key: "tenantId", Value: tenantId}}
+	opts := options.Find().SetSort(bson.D{{Key: "basicInformation.externalId", Value: 1}})
 
 	templates, err := s.db.GetAllTemplates(filter, opts)
 	if err != nil {
@@ -139,7 +140,7 @@ func (s *service) GetTemplates(tenantId string) ([]models.Template, error) {
 }
 
 func (s *service) GetTemplate(tenantId string, templateId string) (*models.Template, error) {
-	filter := bson.D{{"tenantId", tenantId}, {"basicInformation.externalId", templateId}}
+	filter := bson.D{{Key: "tenantId", Value: tenantId}, {Key: "basicInformation.externalId", Value: templateId}}
 
 	template, err := s.db.GetTemplate(filter)
 	if err != nil {
