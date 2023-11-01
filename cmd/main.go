@@ -6,12 +6,13 @@ import (
 	"api/pkg/instance"
 	"api/pkg/template"
 	"context"
+	"log"
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"os"
 )
 
 func main() {
