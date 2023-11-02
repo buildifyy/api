@@ -52,9 +52,11 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 		return attribute.ID == "c2134cea-ddd2-43f7-a775-e4d12742ef79"
 	}); nameAttributeExists {
 		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
+			ID:         "c2134cea-ddd2-43f7-a775-e4d12742ef79",
 			Label:      "Name",
 			InfoText:   "This will be the name of your instance.",
 			Type:       "string",
+			TypeLabel:  "String",
 			IsRequired: true,
 			IsHidden:   false,
 		})
@@ -64,9 +66,11 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 		return attribute.ID == "a25aefe5-b5aa-44b9-9ddf-1f911d1af502"
 	}); externalIdAttributeExists {
 		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
+			ID:         "a25aefe5-b5aa-44b9-9ddf-1f911d1af502",
 			Label:      "External ID",
 			InfoText:   "A unique identifier for your instance.",
 			Type:       "string",
+			TypeLabel:  "String",
 			IsRequired: true,
 			IsHidden:   false,
 		})
