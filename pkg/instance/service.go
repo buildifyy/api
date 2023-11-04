@@ -192,34 +192,36 @@ func validateAttributes(instanceAttributes []models.InstanceAttribute, templateA
 					log.Printf("attribute %s marked as required is empty", attributeId)
 					return false
 				}
-				switch ta.DataType {
-				case "integer":
-					integerValue, err := strconv.Atoi(attributeValue)
-					if err != nil {
-						log.Printf("attribute %s is not an integer value", attributeId)
-						return false
+				if attributeValue != "" {
+					switch ta.DataType {
+					case "integer":
+						integerValue, err := strconv.Atoi(attributeValue)
+						if err != nil {
+							log.Printf("attribute %s is not an integer value", attributeId)
+							return false
+						}
+						instanceAttributes[i].Value = integerValue
+					case "float":
+						floatValue, err := strconv.ParseFloat(attributeValue, 32)
+						if err != nil {
+							log.Printf("attribute %s is not a float value", attributeId)
+							return false
+						}
+						instanceAttributes[i].Value = floatValue
+					case "bool":
+						booleanValue, err := strconv.ParseBool(strings.ToLower(attributeValue))
+						if err != nil {
+							log.Printf("attribute %s is not a boolean value", attributeId)
+							return false
+						}
+						instanceAttributes[i].Value = booleanValue
+					case "string":
+						match, _ := regexp.MatchString("^[a-zA-Z0-9\\s]*$", attributeValue)
+						if !match {
+							log.Printf("attribute %s is not a valid string", attributeId)
+						}
+						instanceAttributes[i].Value = attributeValue
 					}
-					instanceAttributes[i].Value = integerValue
-				case "float":
-					floatValue, err := strconv.ParseFloat(attributeValue, 32)
-					if err != nil {
-						log.Printf("attribute %s is not a float value", attributeId)
-						return false
-					}
-					instanceAttributes[i].Value = floatValue
-				case "bool":
-					booleanValue, err := strconv.ParseBool(strings.ToLower(attributeValue))
-					if err != nil {
-						log.Printf("attribute %s is not a boolean value", attributeId)
-						return false
-					}
-					instanceAttributes[i].Value = booleanValue
-				case "string":
-					match, _ := regexp.MatchString("^[a-zA-Z0-9\\s]*$", attributeValue)
-					if !match {
-						log.Printf("attribute %s is not a valid string", attributeId)
-					}
-					instanceAttributes[i].Value = attributeValue
 				}
 
 				return true
