@@ -202,7 +202,7 @@ func validateAttributes(instanceAttributes []models.InstanceAttribute, templateA
 						}
 						instanceAttributes[i].Value = integerValue
 					case "float":
-						floatValue, err := strconv.ParseFloat(attributeValue, 32)
+						floatValue, err := strconv.ParseFloat(attributeValue, 64)
 						if err != nil {
 							log.Printf("attribute %s is not a float value", attributeId)
 							return false
