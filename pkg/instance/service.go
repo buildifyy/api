@@ -14,11 +14,13 @@ import (
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Service interface {
 	AddInstance(tenantId string, instance models.Instance) error
 	GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error)
+	GetInstances(tenantId string) ([]models.Instance, error)
 }
 
 type service struct {
@@ -31,6 +33,19 @@ func NewService(dbRepository db.Repository, templateService template.Service) Se
 		db:              dbRepository,
 		templateService: templateService,
 	}
+}
+
+func (s *service) GetInstances(tenantId string) ([]models.Instance, error) {
+	filter := bson.D{{Key: "tenantId", Value: tenantId}}
+	opts := options.Find().SetSort(bson.D{{Key: "basicInformation.externalId", Value: 1}})
+
+	instances, err := s.db.GetAllInstances(filter, opts)
+	if err != nil {
+		log.Println("error getting all instances: ", err)
+		return nil, err
+	}
+
+	return instances, nil
 }
 
 func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error) {
@@ -118,6 +133,8 @@ func (s *service) AddInstance(tenantId string, instance models.Instance) error {
 	if instance.BasicInformation.Parent == "" {
 		return fmt.Errorf("%s is required but not provided", "Parent")
 	}
+
+	instance.BasicInformation.IsCustom = true
 
 	parentTemplate, err := s.templateService.GetTemplate(tenantId, instance.BasicInformation.Parent)
 	if err != nil {

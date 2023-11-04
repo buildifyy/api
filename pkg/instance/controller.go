@@ -14,6 +14,7 @@ import (
 type Controller interface {
 	AddInstance(c *gin.Context)
 	GetCreateInstanceForm(c *gin.Context)
+	GetInstanceList(c *gin.Context)
 }
 
 type controller struct {
@@ -51,6 +52,19 @@ func (c *controller) AddInstance(context *gin.Context) {
 	}
 
 	context.Status(http.StatusCreated)
+}
+
+func (c *controller) GetInstanceList(context *gin.Context) {
+	tenantID := context.Param("tenantId")
+
+	res, err := c.instanceService.GetInstances(tenantID)
+	if err != nil {
+		log.Println("error getting instances: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"data": res})
 }
 
 func (c *controller) GetCreateInstanceForm(context *gin.Context) {

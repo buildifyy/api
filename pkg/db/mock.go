@@ -2,6 +2,7 @@ package db
 
 import (
 	"api/pkg/models"
+
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -27,6 +28,14 @@ func (m *MockedDbRepository) GetAllTemplates(filter primitive.D, options *option
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]models.Template), args.Error(1)
+}
+
+func (m *MockedDbRepository) GetAllInstances(filter primitive.D, options *options.FindOptions) ([]models.Instance, error) {
+	args := m.Called(filter, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.Instance), args.Error(1)
 }
 
 func (m *MockedDbRepository) GetTemplate(filter primitive.D) (*models.Template, error) {

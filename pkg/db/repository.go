@@ -18,6 +18,7 @@ type Repository interface {
 	Ping() error
 	AddOne(collectionName string, data interface{}) error
 	GetAllTemplates(filter primitive.D, options *options.FindOptions) ([]models.Template, error)
+	GetAllInstances(filter primitive.D, options *options.FindOptions) ([]models.Instance, error)
 	GetTemplate(filter primitive.D) (*models.Template, error)
 	GetTypeDropdownValues(collection string) ([]models.Dropdown, error)
 	ReplaceTemplate(filter primitive.D, data interface{}) error
@@ -80,6 +81,23 @@ func (r *repository) GetAllTemplates(filter primitive.D, options *options.FindOp
 	}
 
 	var results []models.Template
+	if err := cursor.All(context.Background(), &results); err != nil {
+		log.Println("error parsing all data from database: ", err)
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (r *repository) GetAllInstances(filter primitive.D, options *options.FindOptions) ([]models.Instance, error) {
+	collection := r.client.Database("buildifyy").Collection("instances")
+	cursor, err := collection.Find(context.Background(), filter, options)
+	if err != nil {
+		log.Println("error finding data in database: ", err)
+		return nil, err
+	}
+
+	var results []models.Instance
 	if err := cursor.All(context.Background(), &results); err != nil {
 		log.Println("error parsing all data from database: ", err)
 		return nil, err

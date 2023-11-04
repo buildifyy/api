@@ -3,8 +3,8 @@ package models
 type Instance struct {
 	BasicInformation InstanceBasicInformation `bson:"basicInformation" json:"basicInformation"`
 	Attributes       []InstanceAttribute      `bson:"attributes" json:"attributes"`
-	MetricTypes      map[string]interface{}   `bson:"metricTypes" json:"metricTypes"`
-	Relationships    map[string]interface{}   `bson:"relationships" json:"relationships"`
+	MetricTypes      []interface{}            `bson:"metricTypes" json:"metricTypes"`
+	Relationships    []interface{}            `bson:"relationships" json:"relationships"`
 	TenantID         string                   `bson:"tenantId" json:"tenantId"`
 }
 
@@ -12,6 +12,7 @@ type InstanceBasicInformation struct {
 	Parent     string `bson:"parent" json:"parent"`
 	ExternalId string `bson:"externalId" json:"externalId"`
 	Name       string `bson:"name" json:"name"`
+	IsCustom   bool   `bson:"isCustom" json:"isCustom"`
 }
 
 type InstanceAttribute struct {
