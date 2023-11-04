@@ -4,9 +4,10 @@ import (
 	"api/pkg/db"
 	"api/pkg/models"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Controller interface {
@@ -58,7 +59,7 @@ func (c *controller) CreateTemplate(context *gin.Context) {
 
 	if err := c.templateService.AddTemplate(tenantID, templateToAdd); err != nil {
 		log.Println("error adding template: ", err)
-		if errors.Is(err, db.ErrDuplicateTemplateExternalId) {
+		if errors.Is(err, db.ErrDuplicateExternalId) {
 			context.Status(http.StatusConflict)
 			return
 		}

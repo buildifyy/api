@@ -53,7 +53,7 @@ func main() {
 	templateController := template.NewController(templateService)
 	template.RegisterRoutes(r, templateController)
 
-	instanceService := instance.NewService(dbRepository)
+	instanceService := instance.NewService(dbRepository, templateService)
 	instanceController := instance.NewController(instanceService)
 	instance.RegisterRoutes(r, instanceController)
 

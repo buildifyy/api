@@ -2,16 +2,20 @@ package instance
 
 import (
 	"api/pkg/db"
-	"github.com/stretchr/testify/assert"
+	"api/pkg/template"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewService(t *testing.T) {
 	mockRepository := &db.MockedDbRepository{}
+	mockTemplateService := &template.MockService{}
 	mockService := &service{
-		db: mockRepository,
+		db:              mockRepository,
+		templateService: mockTemplateService,
 	}
-	newService := NewService(mockRepository)
+	newService := NewService(mockRepository, mockTemplateService)
 
 	assert.Equal(t, mockService, newService)
 }

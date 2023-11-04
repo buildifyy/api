@@ -4,9 +4,10 @@ import (
 	"api/pkg/db"
 	"api/pkg/models"
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 func TestNewService(t *testing.T) {
@@ -83,7 +84,7 @@ func TestService_AddTemplate_Fails_ReturnsDuplicateExternalIdError(t *testing.T)
 		db: mockRepository,
 	}
 
-	expected := db.ErrDuplicateTemplateExternalId
+	expected := db.ErrDuplicateExternalId
 
 	mockRepository.On("GetTemplate", mock.AnythingOfType("primitive.D")).Return(&models.Template{
 		TenantID: "the-binary",

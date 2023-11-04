@@ -3,9 +3,14 @@ package instance
 import (
 	"api/pkg/db"
 	"api/pkg/models"
+	"api/pkg/template"
 	"cmp"
+	"errors"
+	"fmt"
 	"log"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,12 +22,14 @@ type Service interface {
 }
 
 type service struct {
-	db db.Repository
+	db              db.Repository
+	templateService template.Service
 }
 
-func NewService(dbRepository db.Repository) Service {
+func NewService(dbRepository db.Repository, templateService template.Service) Service {
 	return &service{
-		db: dbRepository,
+		db:              dbRepository,
+		templateService: templateService,
 	}
 }
 
@@ -100,11 +107,99 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 }
 
 func (s *service) AddInstance(tenantId string, instance models.Instance) error {
-	//instance.TenantID = tenantId
-	//instance.BasicInformation.ExternalID = strings.ToLower(instance.BasicInformation.ExternalID)
-	//if err := s.db.AddOne("instances", instance); err != nil {
-	//	log.Println("error adding instance: ", err)
-	//	return err
-	//}
+	if instance.BasicInformation.Name == "" {
+		return fmt.Errorf("%s is required but not provided", "Name")
+	}
+
+	if instance.BasicInformation.ExternalId == "" {
+		return fmt.Errorf("%s is required but not provided", "External Id")
+	}
+
+	if instance.BasicInformation.Parent == "" {
+		return fmt.Errorf("%s is required but not provided", "Parent")
+	}
+
+	parentTemplate, err := s.templateService.GetTemplate(tenantId, instance.BasicInformation.Parent)
+	if err != nil {
+		log.Println("error getting template: ", err)
+		return err
+	}
+
+	if err := validateAttributes(instance.Attributes, parentTemplate.Attributes); err != nil {
+		log.Println("error validating attribute: ", err)
+		return err
+	}
+
+	instance.TenantID = tenantId
+	instance.BasicInformation.ExternalId = strings.ToLower(instance.BasicInformation.ExternalId)
+	if err := s.db.AddOne("instances", instance); err != nil {
+		log.Println("error adding instance: ", err)
+		return err
+	}
+	return nil
+}
+
+func validateAttributes(instanceAttributes []models.InstanceAttribute, templateAttributes []models.TemplateAttribute) error {
+	for _, attribute := range templateAttributes {
+		if attribute.ID == "a25aefe5-b5aa-44b9-9ddf-1f911d1af502" || attribute.ID == "c2134cea-ddd2-43f7-a775-e4d12742ef79" {
+			continue
+		}
+		if attribute.IsRequired {
+			if exists := slices.ContainsFunc(instanceAttributes, func(ia models.InstanceAttribute) bool {
+				return ia.ID == attribute.ID
+			}); !exists {
+				return fmt.Errorf("attribute %s is required but not provided", attribute.Name)
+			}
+		}
+	}
+
+	for i, attribute := range instanceAttributes {
+		if isValidAttribute := slices.ContainsFunc(templateAttributes, func(ta models.TemplateAttribute) bool {
+			attributeId := attribute.ID
+			attributeValue := attribute.Value.(string)
+			if ta.ID == attribute.ID {
+				if ta.IsRequired && len(attributeValue) == 0 {
+					log.Printf("attribute %s marked as required is empty", attributeId)
+					return false
+				}
+				switch ta.DataType {
+				case "integer":
+					integerValue, err := strconv.Atoi(attributeValue)
+					if err != nil {
+						log.Printf("attribute %s is not an integer value", attributeId)
+						return false
+					}
+					instanceAttributes[i].Value = integerValue
+				case "float":
+					floatValue, err := strconv.ParseFloat(attributeValue, 32)
+					if err != nil {
+						log.Printf("attribute %s is not a float value", attributeId)
+						return false
+					}
+					instanceAttributes[i].Value = floatValue
+				case "bool":
+					booleanValue, err := strconv.ParseBool(strings.ToLower(attributeValue))
+					if err != nil {
+						log.Printf("attribute %s is not a boolean value", attributeId)
+						return false
+					}
+					instanceAttributes[i].Value = booleanValue
+				case "string":
+					match, _ := regexp.MatchString("^[a-zA-Z0-9\\s]*$", attributeValue)
+					if !match {
+						log.Printf("attribute %s is not a valid string", attributeId)
+					}
+					instanceAttributes[i].Value = attributeValue
+				}
+
+				return true
+			}
+
+			return false
+		}); !isValidAttribute {
+			return errors.New("error validating attributes")
+		}
+		continue
+	}
 	return nil
 }
