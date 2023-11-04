@@ -21,6 +21,7 @@ type Service interface {
 	AddInstance(tenantId string, instance models.Instance) error
 	GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error)
 	GetInstances(tenantId string) ([]models.Instance, error)
+	GetInstance(tenantId string, templateId string) (*models.Instance, error)
 }
 
 type service struct {
@@ -46,6 +47,18 @@ func (s *service) GetInstances(tenantId string) ([]models.Instance, error) {
 	}
 
 	return instances, nil
+}
+
+func (s *service) GetInstance(tenantId string, templateId string) (*models.Instance, error) {
+	filter := bson.D{{Key: "tenantId", Value: tenantId}, {Key: "basicInformation.externalId", Value: templateId}}
+
+	template, err := s.db.GetInstance(filter)
+	if err != nil {
+		log.Println("error getting template: ", err)
+		return nil, err
+	}
+
+	return template, nil
 }
 
 func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error) {

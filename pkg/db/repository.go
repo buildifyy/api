@@ -20,6 +20,7 @@ type Repository interface {
 	GetAllTemplates(filter primitive.D, options *options.FindOptions) ([]models.Template, error)
 	GetAllInstances(filter primitive.D, options *options.FindOptions) ([]models.Instance, error)
 	GetTemplate(filter primitive.D) (*models.Template, error)
+	GetInstance(filter primitive.D) (*models.Instance, error)
 	GetTypeDropdownValues(collection string) ([]models.Dropdown, error)
 	ReplaceTemplate(filter primitive.D, data interface{}) error
 }
@@ -104,6 +105,18 @@ func (r *repository) GetAllInstances(filter primitive.D, options *options.FindOp
 	}
 
 	return results, nil
+}
+
+func (r *repository) GetInstance(filter primitive.D) (*models.Instance, error) {
+	collection := r.client.Database("buildifyy").Collection("instances")
+
+	var result models.Instance
+	if err := collection.FindOne(context.Background(), filter).Decode(&result); err != nil {
+		log.Println("error finding data in database: ", err)
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (r *repository) GetTemplate(filter primitive.D) (*models.Template, error) {

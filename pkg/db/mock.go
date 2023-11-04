@@ -46,6 +46,14 @@ func (m *MockedDbRepository) GetTemplate(filter primitive.D) (*models.Template, 
 	return args.Get(0).(*models.Template), args.Error(1)
 }
 
+func (m *MockedDbRepository) GetInstance(filter primitive.D) (*models.Instance, error) {
+	args := m.Called(filter)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Instance), args.Error(1)
+}
+
 func (m *MockedDbRepository) GetTypeDropdownValues(collection string) ([]models.Dropdown, error) {
 	args := m.Called(collection)
 	if args.Get(0) == nil {
