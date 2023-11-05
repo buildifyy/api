@@ -131,6 +131,36 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 		}
 	}
 
+	ret.MetricTypes.Fields = make([]models.InstanceMetaDataFields, 0)
+	for _, mt := range parentTemplate.MetricTypes {
+		metrics := make([]models.InstanceMetaDataFields, 0)
+		for _, metric := range mt.Metrics {
+			dropdownValues := make([]string, 0)
+			manualValue := metric.Value
+			if metric.IsCalculated {
+				dropdownValues = append(dropdownValues, "Calculated")
+			}
+			if metric.IsSourced {
+				dropdownValues = append(dropdownValues, "Sourced")
+			}
+			if metric.IsManual {
+				dropdownValues = append(dropdownValues, "Manual")
+			}
+			metrics = append(metrics, models.InstanceMetaDataFields{
+				ID:             metric.ID,
+				Label:          metric.Name,
+				DropdownValues: dropdownValues,
+				ManualValue:    manualValue,
+			})
+		}
+
+		ret.MetricTypes.Fields = append(ret.MetricTypes.Fields, models.InstanceMetaDataFields{
+			ID:      mt.ID,
+			Label:   mt.Name,
+			Metrics: metrics,
+		})
+	}
+
 	return &ret, nil
 }
 

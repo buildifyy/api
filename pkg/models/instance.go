@@ -3,7 +3,7 @@ package models
 type Instance struct {
 	BasicInformation InstanceBasicInformation `bson:"basicInformation" json:"basicInformation"`
 	Attributes       []InstanceAttribute      `bson:"attributes" json:"attributes"`
-	MetricTypes      []interface{}            `bson:"metricTypes" json:"metricTypes"`
+	MetricTypes      []InstanceMetricType     `bson:"metricTypes" json:"metricTypes"`
 	Relationships    []interface{}            `bson:"relationships" json:"relationships"`
 	TenantID         string                   `bson:"tenantId" json:"tenantId"`
 }
@@ -20,9 +20,21 @@ type InstanceAttribute struct {
 	Value interface{} `bson:"value" json:"value"`
 }
 
+type InstanceMetricType struct {
+	ID      string           `bson:"id" json:"id"`
+	Metrics []InstanceMetric `bson:"metrics" json:"metrics"`
+}
+
+type InstanceMetric struct {
+	ID         string      `bson:"id" json:"id"`
+	MetricType string      `bson:"metricType" json:"metricType"`
+	Value      interface{} `bson:"value" json:"value"`
+}
+
 type InstanceFormMetaData struct {
 	BasicInformation InstanceMetaData `json:"basicInformation"`
 	Attributes       InstanceMetaData `json:"attributes"`
+	MetricTypes      InstanceMetaData `json:"metricTypes"`
 }
 
 type InstanceMetaData struct {
@@ -30,11 +42,14 @@ type InstanceMetaData struct {
 }
 
 type InstanceMetaDataFields struct {
-	ID         string `json:"id"`
-	Label      string `json:"label"`
-	InfoText   string `json:"infoText"`
-	TypeLabel  string `json:"typeLabel"`
-	Type       string `json:"type"`
-	IsRequired bool   `json:"isRequired"`
-	IsHidden   bool   `json:"isHidden"`
+	ID             string                   `json:"id"`
+	Label          string                   `json:"label"`
+	InfoText       string                   `json:"infoText"`
+	TypeLabel      string                   `json:"typeLabel"`
+	Type           string                   `json:"type"`
+	IsRequired     bool                     `json:"isRequired"`
+	IsHidden       bool                     `json:"isHidden"`
+	DropdownValues []string                 `json:"dropdownValues"`
+	ManualValue    interface{}              `json:"manualValue"`
+	Metrics        []InstanceMetaDataFields `json:"metrics"`
 }
