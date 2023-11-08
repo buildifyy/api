@@ -9,10 +9,11 @@ type Instance struct {
 }
 
 type InstanceBasicInformation struct {
-	Parent     string `bson:"parent" json:"parent"`
-	ExternalId string `bson:"externalId" json:"externalId"`
-	Name       string `bson:"name" json:"name"`
-	IsCustom   bool   `bson:"isCustom" json:"isCustom"`
+	Parent       string `bson:"parent" json:"parent"`
+	ExternalId   string `bson:"externalId" json:"externalId"`
+	Name         string `bson:"name" json:"name"`
+	IsCustom     bool   `bson:"isCustom" json:"isCustom"`
+	RootTemplate string `bson:"rootTemplate" json:"rootTemplate"`
 }
 
 type InstanceAttribute struct {

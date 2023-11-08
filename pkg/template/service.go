@@ -42,18 +42,10 @@ func (s *service) UpdateTemplate(tenantId string, template models.Template) erro
 		}
 	}
 
-	for i, metricType := range template.MetricTypes {
-		if metricType.ID == "" {
-			metricTypeID, _ := uuid.NewUUID()
-			metricType.ID = metricTypeID.String()
-			for j, metric := range metricType.Metrics {
-				if metric.ID == "" {
-					metricID, _ := uuid.NewUUID()
-					metric.ID = metricID.String()
-					metricType.Metrics[j] = metric
-				}
-			}
-			template.MetricTypes[i] = metricType
+	for i, metric := range template.Metrics {
+		if metric.ID == "" {
+			metricId, _ := uuid.NewUUID()
+			template.Metrics[i].ID = metricId.String()
 		}
 	}
 
@@ -94,17 +86,9 @@ func (s *service) AddTemplate(tenantId string, template models.Template) error {
 			template.Attributes[i] = attribute
 		}
 	}
-	if len(template.MetricTypes) > 0 {
-		for i, metricType := range template.MetricTypes {
-			metricTypeID, _ := uuid.NewUUID()
-			metricType.ID = metricTypeID.String()
-			for j, metric := range metricType.Metrics {
-				metricID, _ := uuid.NewUUID()
-				metric.ID = metricID.String()
-				metricType.Metrics[j] = metric
-			}
-			template.MetricTypes[i] = metricType
-		}
+	for i := range template.Metrics {
+		metricId, _ := uuid.NewUUID()
+		template.Metrics[i].ID = metricId.String()
 	}
 	template.TenantID = tenantId
 	template.BasicInformation.ExternalID = strings.ToLower(template.BasicInformation.ExternalID)
@@ -114,9 +98,14 @@ func (s *service) AddTemplate(tenantId string, template models.Template) error {
 		log.Println("error fetching parent template: ", err)
 		return err
 	}
+	if parentTemplate.BasicInformation.RootTemplate == "" {
+		template.BasicInformation.RootTemplate = parentTemplate.BasicInformation.ExternalID
+	} else {
+		template.BasicInformation.RootTemplate = parentTemplate.BasicInformation.RootTemplate
+	}
 
 	template.Attributes = append(parentTemplate.Attributes, template.Attributes...)
-	template.MetricTypes = append(parentTemplate.MetricTypes, template.MetricTypes...)
+	template.Metrics = append(parentTemplate.Metrics, template.Metrics...)
 
 	if err := s.db.AddOne("templates", template); err != nil {
 		log.Println("error inserting template: ", err)

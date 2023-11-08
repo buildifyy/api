@@ -50,8 +50,8 @@ func TestController_CreateTemplate_Success(t *testing.T) {
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	})
 	if err != nil {
 		panic(err)
@@ -92,8 +92,8 @@ func TestController_CreateTemplate_FailsToParseRequestBody_ReturnsBadRequest(t *
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	}})
 	if err != nil {
 		panic(err)
@@ -131,8 +131,8 @@ func TestController_CreateTemplate_FailsToCreateTemplate_ReturnsInternalServerEr
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	})
 	if err != nil {
 		panic(err)
@@ -173,8 +173,8 @@ func TestController_CreateTemplate_FailsToCreateTemplateWhenTemplateAlreadyExist
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	})
 	if err != nil {
 		panic(err)
@@ -215,8 +215,8 @@ func TestController_UpdateTemplateById_Success(t *testing.T) {
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	})
 	if err != nil {
 		panic(err)
@@ -258,8 +258,8 @@ func TestController_UpdateTemplateById_FailsToParseRequestBody_ReturnsBadRequest
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	}})
 	if err != nil {
 		panic(err)
@@ -298,8 +298,8 @@ func TestController_UpdateTemplateById_FailsToUpdateTemplate_ReturnsInternalServ
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	})
 	if err != nil {
 		panic(err)
@@ -397,8 +397,8 @@ func TestController_GetTemplatesList_Success(t *testing.T) {
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	}}
 
 	mockService.On("GetTemplates", mock.AnythingOfType("string")).Return(templatesResponse, nil)
@@ -458,8 +458,8 @@ func TestController_GetTemplatesById_Success(t *testing.T) {
 			ExternalID: "testtemplate1",
 			IsCustom:   true,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	}
 
 	mockService.On("GetTemplate", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(templateResponse, nil)

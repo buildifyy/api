@@ -34,8 +34,8 @@ func TestService_AddTemplate_Success_CreatesTemplate(t *testing.T) {
 			ExternalID: "p.com.asset",
 			IsCustom:   false,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	}, nil)
 	mockRepository.On("AddOne", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(nil)
 
@@ -56,22 +56,16 @@ func TestService_AddTemplate_Success_CreatesTemplate(t *testing.T) {
 				OwningTemplate: "testtemplate1",
 			},
 		},
-		MetricTypes: []models.TemplateMetricType{
-			{
-				Name:       "metrictype1",
-				MetricType: "integer",
-				Metrics: []models.TemplateMetric{
-					{
-						Name:         "metric1",
-						IsManual:     false,
-						Value:        nil,
-						IsCalculated: false,
-						IsSourced:    false,
-					},
-				},
-				OwningTemplate: "testtemplate1",
-			},
-		},
+		Metrics: []models.TemplateMetric{{
+			Name:           "metric1",
+			MetricType:     "integer",
+			Unit:           "%",
+			IsManual:       false,
+			Value:          nil,
+			IsCalculated:   false,
+			IsSourced:      false,
+			OwningTemplate: "testtemplate1",
+		}},
 	})
 	assert.Equal(t, nil, actual)
 
@@ -94,8 +88,8 @@ func TestService_AddTemplate_Fails_ReturnsDuplicateExternalIdError(t *testing.T)
 			ExternalID: "p.com.asset",
 			IsCustom:   false,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	}, nil)
 	mockRepository.On("AddOne", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(expected)
 
@@ -137,8 +131,8 @@ func TestService_AddTemplate_Fails_ReturnsError(t *testing.T) {
 			ExternalID: "p.com.asset",
 			IsCustom:   false,
 		},
-		Attributes:  make([]models.TemplateAttribute, 0),
-		MetricTypes: make([]models.TemplateMetricType, 0),
+		Attributes: make([]models.TemplateAttribute, 0),
+		Metrics:    make([]models.TemplateMetric, 0),
 	}, nil)
 	mockRepository.On("AddOne", mock.AnythingOfType("string"), mock.AnythingOfType("models.Template")).Return(expected)
 
@@ -162,8 +156,8 @@ func TestService_GetTemplate_Success_ReturnsTemplate(t *testing.T) {
 			Name:       "Test Template",
 			IsCustom:   true,
 		},
-		Attributes:  nil,
-		MetricTypes: nil,
+		Attributes: nil,
+		Metrics:    nil,
 	}
 
 	mockRepository.On("GetTemplate", mock.AnythingOfType("primitive.D")).Return(expected, nil)
@@ -208,8 +202,8 @@ func TestService_GetTemplates_Success_ReturnsTemplates(t *testing.T) {
 				Name:       "Test Template",
 				IsCustom:   true,
 			},
-			Attributes:  nil,
-			MetricTypes: nil,
+			Attributes: nil,
+			Metrics:    nil,
 		}, models.Template{
 			TenantID: "the-binary",
 			BasicInformation: models.TemplateBasicInformation{
@@ -218,8 +212,8 @@ func TestService_GetTemplates_Success_ReturnsTemplates(t *testing.T) {
 				Name:       "Test Template 2",
 				IsCustom:   true,
 			},
-			Attributes:  nil,
-			MetricTypes: nil,
+			Attributes: nil,
+			Metrics:    nil,
 		})
 
 	mockRepository.On("GetAllTemplates", mock.AnythingOfType("primitive.D"), mock.AnythingOfType("*options.FindOptions")).Return(expected, nil)
@@ -281,38 +275,25 @@ func TestService_UpdateTemplate_Success(t *testing.T) {
 				OwningTemplate: "testtemplate1",
 			},
 		},
-		MetricTypes: []models.TemplateMetricType{
-			{
-				ID:         "549fe288-63ee-480a-9a1d-85d4021b77ca",
-				Name:       "metrictype1",
-				MetricType: "integer",
-				Metrics: []models.TemplateMetric{
-					{
-						ID:           "90f336bb-1614-42ab-800b-1b1f821161c1",
-						Name:         "metric1",
-						IsManual:     false,
-						Value:        nil,
-						IsCalculated: false,
-						IsSourced:    false,
-					},
-				},
-				OwningTemplate: "testtemplate1",
-			},
-			{
-				Name:       "metrictype2",
-				MetricType: "integer",
-				Metrics: []models.TemplateMetric{
-					{
-						Name:         "metric1",
-						IsManual:     false,
-						Value:        nil,
-						IsCalculated: false,
-						IsSourced:    false,
-					},
-				},
-				OwningTemplate: "testtemplate1",
-			},
-		},
+		Metrics: []models.TemplateMetric{{
+			Name:           "metric1",
+			MetricType:     "integer",
+			Unit:           "%",
+			IsManual:       false,
+			Value:          nil,
+			IsCalculated:   false,
+			IsSourced:      false,
+			OwningTemplate: "testtemplate1",
+		}, {
+			Name:           "metric2",
+			MetricType:     "integer",
+			Unit:           "%",
+			IsManual:       false,
+			Value:          nil,
+			IsCalculated:   false,
+			IsSourced:      false,
+			OwningTemplate: "testtemplate1",
+		}},
 	})
 	assert.Nil(t, actualErr)
 
@@ -361,8 +342,8 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 				Name:       "Test Template 1",
 				IsCustom:   true,
 			},
-			Attributes:  nil,
-			MetricTypes: nil,
+			Attributes: nil,
+			Metrics:    nil,
 		},
 		{
 			TenantID: "the-binary",
@@ -372,8 +353,8 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 				Name:       "Test Template 2",
 				IsCustom:   true,
 			},
-			Attributes:  nil,
-			MetricTypes: nil,
+			Attributes: nil,
+			Metrics:    nil,
 		},
 	}
 
