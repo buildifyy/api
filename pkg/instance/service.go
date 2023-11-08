@@ -150,6 +150,7 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 			Type:           metric.MetricType,
 			DropdownValues: dropdownValues,
 			ManualValue:    manualValue,
+			Unit:           metric.Unit,
 		})
 	}
 
@@ -278,7 +279,7 @@ func validateMetrics(instanceMetrics []models.InstanceMetric, templateMetrics []
 				metricValue := metric.Value.(string)
 				if tm.ID == metric.ID {
 					if metricValue != "" {
-						switch metric.MetricType {
+						switch tm.MetricType {
 						case "integer":
 							integerValue, err := strconv.Atoi(metricValue)
 							if err != nil {

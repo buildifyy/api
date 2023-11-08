@@ -23,8 +23,6 @@ type InstanceAttribute struct {
 
 type InstanceMetric struct {
 	ID              string      `bson:"id" json:"id"`
-	MetricType      string      `bson:"metricType" json:"metricType"`
-	Unit            string      `bson:"unit" json:"unit"`
 	MetricBehaviour string      `bson:"metricBehaviour" json:"metricBehaviour"`
 	Value           interface{} `bson:"value" json:"value"`
 }
@@ -49,4 +47,5 @@ type InstanceMetaDataFields struct {
 	IsHidden       bool        `json:"isHidden"`
 	DropdownValues []string    `json:"dropdownValues"`
 	ManualValue    interface{} `json:"manualValue"`
+	Unit           string      `json:"unit"`
 }
