@@ -10,6 +10,7 @@ type Service interface {
 	GetAttributeDropdown() ([]models.Dropdown, error)
 	GetMetricTypeDropdown() ([]models.Dropdown, error)
 	GetUnitDropdown() ([]models.Dropdown, error)
+	GetRelationships() ([]models.Relationship, error)
 }
 
 type service struct {
@@ -20,6 +21,16 @@ func NewService(repository db.Repository) Service {
 	return &service{
 		db: repository,
 	}
+}
+
+func (s *service) GetRelationships() ([]models.Relationship, error) {
+	values, err := s.db.GetRelationships("relationships")
+	if err != nil {
+		log.Println("error fetching relationships: ", err)
+		return nil, err
+	}
+
+	return values, nil
 }
 
 func (s *service) GetAttributeDropdown() ([]models.Dropdown, error) {

@@ -1,10 +1,12 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type Instance struct {
 	BasicInformation InstanceBasicInformation `bson:"basicInformation" json:"basicInformation"`
 	Attributes       []InstanceAttribute      `bson:"attributes" json:"attributes"`
 	Metrics          []InstanceMetric         `bson:"metrics" json:"metrics"`
-	Relationships    []interface{}            `bson:"relationships" json:"relationships"`
+	Relationships    []InstanceRelationship   `bson:"relationships" json:"relationships"`
 	TenantID         string                   `bson:"tenantId" json:"tenantId"`
 }
 
@@ -25,6 +27,13 @@ type InstanceMetric struct {
 	ID              string      `bson:"id" json:"id"`
 	MetricBehaviour string      `bson:"metricBehaviour" json:"metricBehaviour"`
 	Value           interface{} `bson:"value" json:"value"`
+}
+
+type InstanceRelationship struct {
+	ID             string             `bson:"id" json:"id"`
+	Source         string             `bson:"source" json:"source"`
+	Target         string             `bson:"target" json:"target"`
+	RelationshipId primitive.ObjectID `bson:"relationshipId" json:"relationshipId"`
 }
 
 type InstanceFormMetaData struct {

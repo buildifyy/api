@@ -62,6 +62,14 @@ func (m *MockedDbRepository) GetTypeDropdownValues(collection string) ([]models.
 	return args.Get(0).([]models.Dropdown), args.Error(1)
 }
 
+func (m *MockedDbRepository) GetRelationships(collection string) ([]models.Relationship, error) {
+	args := m.Called(collection)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.Relationship), args.Error(1)
+}
+
 func (m *MockedDbRepository) ReplaceTemplate(filter primitive.D, data interface{}) error {
 	args := m.Called(filter, data)
 	return args.Error(0)

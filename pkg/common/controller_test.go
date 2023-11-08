@@ -40,6 +40,14 @@ func (m *MockService) GetUnitDropdown() ([]models.Dropdown, error) {
 	return args.Get(0).([]models.Dropdown), args.Error(1)
 }
 
+func (m *MockService) GetRelationships() ([]models.Relationship, error) {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.Relationship), args.Error(1)
+}
+
 func TestNewController(t *testing.T) {
 	mockService := &MockService{}
 	mockController := &controller{

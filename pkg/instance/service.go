@@ -83,9 +83,9 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 	parentAttributes := parentTemplate.Attributes
 
 	ret.BasicInformation.Fields = make([]models.InstanceMetaDataFields, 0)
-	if nameAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
+	if assetNameAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
 		return attribute.ID == "c2134cea-ddd2-43f7-a775-e4d12742ef79"
-	}); nameAttributeExists {
+	}); assetNameAttributeExists {
 		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
 			ID:         "c2134cea-ddd2-43f7-a775-e4d12742ef79",
 			Label:      "Name",
@@ -97,9 +97,23 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 		})
 	}
 
-	if externalIdAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
+	if spaceNameAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
+		return attribute.ID == "39a04903-435e-4f91-9c68-4772292dca4a"
+	}); spaceNameAttributeExists {
+		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
+			ID:         "39a04903-435e-4f91-9c68-4772292dca4a",
+			Label:      "Name",
+			InfoText:   "This will be the name of your instance.",
+			Type:       "string",
+			TypeLabel:  "String",
+			IsRequired: true,
+			IsHidden:   false,
+		})
+	}
+
+	if assetExternalIdAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
 		return attribute.ID == "a25aefe5-b5aa-44b9-9ddf-1f911d1af502"
-	}); externalIdAttributeExists {
+	}); assetExternalIdAttributeExists {
 		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
 			ID:         "a25aefe5-b5aa-44b9-9ddf-1f911d1af502",
 			Label:      "External ID",
@@ -111,9 +125,23 @@ func (s *service) GetCreateInstanceForm(tenantId string, parentTemplateExternalI
 		})
 	}
 
+	if spaceExternalIdAttributeExists := slices.ContainsFunc(parentAttributes, func(attribute models.TemplateAttribute) bool {
+		return attribute.ID == "2bf69f85-50b0-4c31-a329-9bf4121a9045"
+	}); spaceExternalIdAttributeExists {
+		ret.BasicInformation.Fields = append(ret.BasicInformation.Fields, models.InstanceMetaDataFields{
+			ID:         "2bf69f85-50b0-4c31-a329-9bf4121a9045",
+			Label:      "External ID",
+			InfoText:   "A unique identifier for your instance.",
+			Type:       "string",
+			TypeLabel:  "String",
+			IsRequired: true,
+			IsHidden:   false,
+		})
+	}
+
 	ret.Attributes.Fields = make([]models.InstanceMetaDataFields, 0)
 	for _, attr := range parentAttributes {
-		if attr.ID != "a25aefe5-b5aa-44b9-9ddf-1f911d1af502" && attr.ID != "c2134cea-ddd2-43f7-a775-e4d12742ef79" {
+		if attr.ID != "a25aefe5-b5aa-44b9-9ddf-1f911d1af502" && attr.ID != "c2134cea-ddd2-43f7-a775-e4d12742ef79" && attr.ID != "39a04903-435e-4f91-9c68-4772292dca4a" && attr.ID != "2bf69f85-50b0-4c31-a329-9bf4121a9045" {
 			attributeTypeIndex, _ := slices.BinarySearchFunc(attributeTypes, models.Dropdown{
 				Value: attr.DataType,
 			}, func(dropdown models.Dropdown, dropdown2 models.Dropdown) int {
@@ -206,7 +234,7 @@ func (s *service) AddInstance(tenantId string, instance models.Instance) error {
 
 func validateAttributes(instanceAttributes []models.InstanceAttribute, templateAttributes []models.TemplateAttribute) error {
 	for _, attribute := range templateAttributes {
-		if attribute.ID == "a25aefe5-b5aa-44b9-9ddf-1f911d1af502" || attribute.ID == "c2134cea-ddd2-43f7-a775-e4d12742ef79" {
+		if attribute.ID == "a25aefe5-b5aa-44b9-9ddf-1f911d1af502" || attribute.ID == "c2134cea-ddd2-43f7-a775-e4d12742ef79" || attribute.ID == "2bf69f85-50b0-4c31-a329-9bf4121a9045" || attribute.ID == "39a04903-435e-4f91-9c68-4772292dca4a" {
 			continue
 		}
 		if attribute.IsRequired {
