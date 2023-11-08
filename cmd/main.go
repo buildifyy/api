@@ -3,6 +3,7 @@ package main
 import (
 	"api/pkg/common"
 	"api/pkg/db"
+	"api/pkg/instance"
 	"api/pkg/template"
 	"context"
 	"log"
@@ -52,9 +53,9 @@ func main() {
 	templateController := template.NewController(templateService)
 	template.RegisterRoutes(r, templateController)
 
-	// instanceService := instance.NewService(dbRepository, templateService)
-	// instanceController := instance.NewController(instanceService)
-	// instance.RegisterRoutes(r, instanceController)
+	instanceService := instance.NewService(dbRepository, templateService)
+	instanceController := instance.NewController(instanceService)
+	instance.RegisterRoutes(r, instanceController)
 
 	commonService := common.NewService(dbRepository)
 	commonController := common.NewController(commonService)

@@ -3,7 +3,7 @@ package models
 type Instance struct {
 	BasicInformation InstanceBasicInformation `bson:"basicInformation" json:"basicInformation"`
 	Attributes       []InstanceAttribute      `bson:"attributes" json:"attributes"`
-	MetricTypes      []InstanceMetricType     `bson:"metricTypes" json:"metricTypes"`
+	Metrics          []InstanceMetric         `bson:"metrics" json:"metrics"`
 	Relationships    []interface{}            `bson:"relationships" json:"relationships"`
 	TenantID         string                   `bson:"tenantId" json:"tenantId"`
 }
@@ -21,21 +21,18 @@ type InstanceAttribute struct {
 	Value interface{} `bson:"value" json:"value"`
 }
 
-type InstanceMetricType struct {
-	ID      string           `bson:"id" json:"id"`
-	Metrics []InstanceMetric `bson:"metrics" json:"metrics"`
-}
-
 type InstanceMetric struct {
-	ID         string      `bson:"id" json:"id"`
-	MetricType string      `bson:"metricType" json:"metricType"`
-	Value      interface{} `bson:"value" json:"value"`
+	ID              string      `bson:"id" json:"id"`
+	MetricType      string      `bson:"metricType" json:"metricType"`
+	Unit            string      `bson:"unit" json:"unit"`
+	MetricBehaviour string      `bson:"metricBehaviour" json:"metricBehaviour"`
+	Value           interface{} `bson:"value" json:"value"`
 }
 
 type InstanceFormMetaData struct {
 	BasicInformation InstanceMetaData `json:"basicInformation"`
 	Attributes       InstanceMetaData `json:"attributes"`
-	MetricTypes      InstanceMetaData `json:"metricTypes"`
+	Metrics          InstanceMetaData `json:"metrics"`
 }
 
 type InstanceMetaData struct {
@@ -43,14 +40,13 @@ type InstanceMetaData struct {
 }
 
 type InstanceMetaDataFields struct {
-	ID             string                   `json:"id"`
-	Label          string                   `json:"label"`
-	InfoText       string                   `json:"infoText"`
-	TypeLabel      string                   `json:"typeLabel"`
-	Type           string                   `json:"type"`
-	IsRequired     bool                     `json:"isRequired"`
-	IsHidden       bool                     `json:"isHidden"`
-	DropdownValues []string                 `json:"dropdownValues"`
-	ManualValue    interface{}              `json:"manualValue"`
-	Metrics        []InstanceMetaDataFields `json:"metrics"`
+	ID             string      `json:"id"`
+	Label          string      `json:"label"`
+	InfoText       string      `json:"infoText"`
+	TypeLabel      string      `json:"typeLabel"`
+	Type           string      `json:"type"`
+	IsRequired     bool        `json:"isRequired"`
+	IsHidden       bool        `json:"isHidden"`
+	DropdownValues []string    `json:"dropdownValues"`
+	ManualValue    interface{} `json:"manualValue"`
 }
