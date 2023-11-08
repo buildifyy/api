@@ -3,12 +3,13 @@ package common
 import (
 	"api/pkg/models"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockService struct {
@@ -24,6 +25,14 @@ func (m *MockService) GetAttributeDropdown() ([]models.Dropdown, error) {
 }
 
 func (m *MockService) GetMetricTypeDropdown() ([]models.Dropdown, error) {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.Dropdown), args.Error(1)
+}
+
+func (m *MockService) GetUnitDropdown() ([]models.Dropdown, error) {
 	args := m.Called()
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

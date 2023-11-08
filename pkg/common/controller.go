@@ -1,14 +1,16 @@
 package common
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Controller interface {
 	GetAttributeTypes(c *gin.Context)
 	GetMetricTypes(c *gin.Context)
+	GetUnits(c *gin.Context)
 }
 
 type controller struct {
@@ -36,6 +38,17 @@ func (c *controller) GetMetricTypes(context *gin.Context) {
 	values, err := c.commonService.GetMetricTypeDropdown()
 	if err != nil {
 		log.Println("error fetching metric type dropdown values: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"data": values})
+}
+
+func (c *controller) GetUnits(context *gin.Context) {
+	values, err := c.commonService.GetUnitDropdown()
+	if err != nil {
+		log.Println("error fetching unit dropdown values: ", err)
 		context.Status(http.StatusInternalServerError)
 		return
 	}
