@@ -322,14 +322,16 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 		db: mockRepository,
 	}
 
-	expected := []models.Dropdown{
+	expected := []models.ParentTemplateDropdown{
 		{
-			Label: "Test Template 1",
-			Value: "testtemplate1",
+			Label:        "Test Template 1",
+			Value:        "testtemplate1",
+			RootTemplate: "p.com.asset",
 		},
 		{
-			Label: "Test Template 2",
-			Value: "testtemplate2",
+			Label:        "Test Template 2",
+			Value:        "testtemplate2",
+			RootTemplate: "p.com.asset",
 		},
 	}
 
@@ -337,10 +339,11 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 		{
 			TenantID: "the-binary",
 			BasicInformation: models.TemplateBasicInformation{
-				Parent:     "p.com.asset",
-				ExternalID: "testtemplate1",
-				Name:       "Test Template 1",
-				IsCustom:   true,
+				Parent:       "p.com.asset",
+				ExternalID:   "testtemplate1",
+				Name:         "Test Template 1",
+				IsCustom:     true,
+				RootTemplate: "p.com.asset",
 			},
 			Attributes: nil,
 			Metrics:    nil,
@@ -348,10 +351,11 @@ func TestService_GetParentTemplates_Success_ReturnsExternalIdSlice(t *testing.T)
 		{
 			TenantID: "the-binary",
 			BasicInformation: models.TemplateBasicInformation{
-				Parent:     "p.com.asset",
-				ExternalID: "testtemplate2",
-				Name:       "Test Template 2",
-				IsCustom:   true,
+				Parent:       "p.com.asset",
+				ExternalID:   "testtemplate2",
+				Name:         "Test Template 2",
+				IsCustom:     true,
+				RootTemplate: "p.com.asset",
 			},
 			Attributes: nil,
 			Metrics:    nil,

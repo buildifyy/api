@@ -74,3 +74,8 @@ func (m *MockedDbRepository) ReplaceTemplate(filter primitive.D, data interface{
 	args := m.Called(filter, data)
 	return args.Error(0)
 }
+
+func (m *MockedDbRepository) ReplaceInstance(filter primitive.D, data interface{}) error {
+	args := m.Called(filter, data)
+	return args.Error(0)
+}

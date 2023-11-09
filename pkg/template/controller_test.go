@@ -330,14 +330,16 @@ func TestController_GetParentTemplates_Success(t *testing.T) {
 	ctx.Request.Method = "GET"
 	ctx.AddParam("tenantId", "the-binary")
 
-	parentTemplatesDropdown := []models.Dropdown{
+	parentTemplatesDropdown := []models.ParentTemplateDropdown{
 		{
-			Label: "Test Template 1",
-			Value: "testtemplate1",
+			Label:        "Test Template 1",
+			Value:        "testtemplate1",
+			RootTemplate: "p.com.asset",
 		},
 		{
-			Label: "Test Template 2",
-			Value: "testtemplate2",
+			Label:        "Test Template 2",
+			Value:        "testtemplate2",
+			RootTemplate: "p.com.asset",
 		},
 	}
 

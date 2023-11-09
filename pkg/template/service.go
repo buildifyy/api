@@ -15,7 +15,7 @@ type Service interface {
 	AddTemplate(tenantId string, template models.Template) error
 	GetTemplates(tenantId string) ([]models.Template, error)
 	GetTemplate(tenantId string, templateId string) (*models.Template, error)
-	GetParentTemplates(tenantId string) ([]models.Dropdown, error)
+	GetParentTemplates(tenantId string) ([]models.ParentTemplateDropdown, error)
 	UpdateTemplate(tenantId string, template models.Template) error
 }
 
@@ -57,7 +57,7 @@ func (s *service) UpdateTemplate(tenantId string, template models.Template) erro
 	return nil
 }
 
-func (s *service) GetParentTemplates(tenantId string) ([]models.Dropdown, error) {
+func (s *service) GetParentTemplates(tenantId string) ([]models.ParentTemplateDropdown, error) {
 	filter := bson.D{{Key: "tenantId", Value: tenantId}}
 	opts := options.Find().SetSort(bson.D{{Key: "basicInformation.name", Value: 1}})
 	templates, err := s.db.GetAllTemplates(filter, opts)
@@ -66,11 +66,12 @@ func (s *service) GetParentTemplates(tenantId string) ([]models.Dropdown, error)
 		return nil, err
 	}
 
-	result := make([]models.Dropdown, 0)
+	result := make([]models.ParentTemplateDropdown, 0)
 	for _, template := range templates {
-		option := models.Dropdown{
-			Label: template.BasicInformation.Name,
-			Value: template.BasicInformation.ExternalID,
+		option := models.ParentTemplateDropdown{
+			Label:        template.BasicInformation.Name,
+			Value:        template.BasicInformation.ExternalID,
+			RootTemplate: template.BasicInformation.RootTemplate,
 		}
 		result = append(result, option)
 	}

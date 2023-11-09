@@ -31,7 +31,7 @@ type InstanceMetric struct {
 
 type InstanceRelationship struct {
 	ID                     string             `bson:"id" json:"id"`
-	Target                 string             `bson:"target" json:"target"`
+	Target                 interface{}        `bson:"target" json:"target"`
 	RelationshipTemplateId primitive.ObjectID `bson:"relationshipTemplateId" json:"relationshipTemplateId"`
 }
 

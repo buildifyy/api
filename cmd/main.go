@@ -49,17 +49,17 @@ func main() {
 
 	r.Use(cors.Default())
 
+	commonService := common.NewService(dbRepository)
+	commonController := common.NewController(commonService)
+	common.RegisterRoutes(r, commonController)
+
 	templateService := template.NewService(dbRepository)
 	templateController := template.NewController(templateService)
 	template.RegisterRoutes(r, templateController)
 
-	instanceService := instance.NewService(dbRepository, templateService)
+	instanceService := instance.NewService(dbRepository, templateService, commonService)
 	instanceController := instance.NewController(instanceService)
 	instance.RegisterRoutes(r, instanceController)
-
-	commonService := common.NewService(dbRepository)
-	commonController := common.NewController(commonService)
-	common.RegisterRoutes(r, commonController)
 
 	if err = r.Run(); err != nil {
 		panic(err)

@@ -24,6 +24,7 @@ type Repository interface {
 	GetTypeDropdownValues(collection string) ([]models.Dropdown, error)
 	GetRelationships(collection string) ([]models.Relationship, error)
 	ReplaceTemplate(filter primitive.D, data interface{}) error
+	ReplaceInstance(filter primitive.D, data interface{}) error
 }
 
 type repository struct {
@@ -38,6 +39,17 @@ func NewRepository(client *mongo.Client) Repository {
 
 func (r *repository) ReplaceTemplate(filter primitive.D, data interface{}) error {
 	collection := r.client.Database("buildifyy").Collection("templates")
+	_, err := collection.ReplaceOne(context.Background(), filter, data)
+	if err != nil {
+		log.Println("error replacing data in database")
+		return err
+	}
+
+	return nil
+}
+
+func (r *repository) ReplaceInstance(filter primitive.D, data interface{}) error {
+	collection := r.client.Database("buildifyy").Collection("instances")
 	_, err := collection.ReplaceOne(context.Background(), filter, data)
 	if err != nil {
 		log.Println("error replacing data in database")

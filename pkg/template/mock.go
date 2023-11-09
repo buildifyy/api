@@ -31,12 +31,12 @@ func (m *MockService) GetTemplate(tenantId string, templateId string) (*models.T
 	return args.Get(0).(*models.Template), args.Error(1)
 }
 
-func (m *MockService) GetParentTemplates(tenantId string) ([]models.Dropdown, error) {
+func (m *MockService) GetParentTemplates(tenantId string) ([]models.ParentTemplateDropdown, error) {
 	args := m.Called(tenantId)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]models.Dropdown), args.Error(1)
+	return args.Get(0).([]models.ParentTemplateDropdown), args.Error(1)
 }
 
 func (m *MockService) UpdateTemplate(tenantId string, template models.Template) error {

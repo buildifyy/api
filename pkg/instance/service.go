@@ -1,6 +1,7 @@
 package instance
 
 import (
+	"api/pkg/common"
 	"api/pkg/db"
 	"api/pkg/models"
 	"api/pkg/template"
@@ -13,7 +14,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -21,18 +24,20 @@ type Service interface {
 	AddInstance(tenantId string, instance models.Instance) error
 	GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error)
 	GetInstances(tenantId string) ([]models.Instance, error)
-	GetInstance(tenantId string, templateId string) (*models.Instance, error)
+	GetInstance(tenantId string, instanceExternalId string) (*models.Instance, error)
 }
 
 type service struct {
 	db              db.Repository
 	templateService template.Service
+	commonService   common.Service
 }
 
-func NewService(dbRepository db.Repository, templateService template.Service) Service {
+func NewService(dbRepository db.Repository, templateService template.Service, commonService common.Service) Service {
 	return &service{
 		db:              dbRepository,
 		templateService: templateService,
+		commonService:   commonService,
 	}
 }
 
@@ -49,8 +54,8 @@ func (s *service) GetInstances(tenantId string) ([]models.Instance, error) {
 	return instances, nil
 }
 
-func (s *service) GetInstance(tenantId string, templateId string) (*models.Instance, error) {
-	filter := bson.D{{Key: "tenantId", Value: tenantId}, {Key: "basicInformation.externalId", Value: templateId}}
+func (s *service) GetInstance(tenantId string, instanceExternalId string) (*models.Instance, error) {
+	filter := bson.D{{Key: "tenantId", Value: tenantId}, {Key: "basicInformation.externalId", Value: instanceExternalId}}
 
 	template, err := s.db.GetInstance(filter)
 	if err != nil {
@@ -199,11 +204,19 @@ func (s *service) AddInstance(tenantId string, instance models.Instance) error {
 	}
 
 	instance.BasicInformation.IsCustom = true
+	instance.TenantID = tenantId
+	instance.BasicInformation.ExternalId = strings.ToLower(instance.BasicInformation.ExternalId)
 
 	parentTemplate, err := s.templateService.GetTemplate(tenantId, instance.BasicInformation.Parent)
 	if err != nil {
 		log.Println("error getting template: ", err)
 		return err
+	}
+
+	if parentTemplate.BasicInformation.RootTemplate == "" {
+		instance.BasicInformation.RootTemplate = parentTemplate.BasicInformation.ExternalID
+	} else {
+		instance.BasicInformation.RootTemplate = parentTemplate.BasicInformation.RootTemplate
 	}
 
 	if err := validateAttributes(instance.Attributes, parentTemplate.Attributes); err != nil {
@@ -216,13 +229,16 @@ func (s *service) AddInstance(tenantId string, instance models.Instance) error {
 		return err
 	}
 
-	instance.TenantID = tenantId
-	instance.BasicInformation.ExternalId = strings.ToLower(instance.BasicInformation.ExternalId)
+	if err := s.validateRelationships(instance); err != nil {
+		log.Println("error validating relationships: ", err)
+		return err
+	}
 
-	if parentTemplate.BasicInformation.RootTemplate == "" {
-		instance.BasicInformation.RootTemplate = parentTemplate.BasicInformation.ExternalID
-	} else {
-		instance.BasicInformation.RootTemplate = parentTemplate.BasicInformation.RootTemplate
+	for i, instanceRelationship := range instance.Relationships {
+		newRelationshipId, _ := uuid.NewUUID()
+		if instanceRelationship.ID == "" {
+			instance.Relationships[i].ID = newRelationshipId.String()
+		}
 	}
 
 	if err := s.db.AddOne("instances", instance); err != nil {
@@ -348,5 +364,109 @@ func validateMetrics(instanceMetrics []models.InstanceMetric, templateMetrics []
 		}
 		continue
 	}
+	return nil
+}
+
+func (s *service) validateRelationships(instance models.Instance) error {
+	relationshipTemplates, err := s.commonService.GetRelationships()
+	if err != nil {
+		log.Println("error fetching relationships: ", err)
+		return err
+	}
+
+	for _, instanceRelationship := range instance.Relationships {
+		directRelationshipIndex := slices.IndexFunc(relationshipTemplates, func(r models.Relationship) bool {
+			return r.ID == instanceRelationship.RelationshipTemplateId
+		})
+		if directRelationshipIndex == -1 {
+			log.Printf("relationship not found: %s\n", instanceRelationship.RelationshipTemplateId)
+			return errors.New("error validating relationships")
+		}
+		directRelationship := relationshipTemplates[directRelationshipIndex]
+		if directRelationship.Source != instance.BasicInformation.RootTemplate {
+			log.Printf("relationship %s source not correct\n", instanceRelationship.ID)
+			return errors.New("error validating relationships")
+		}
+
+		inverseRelationshipId := relationshipTemplates[directRelationshipIndex].Inverse
+		inverseRelationshipIndex := slices.IndexFunc(relationshipTemplates, func(r models.Relationship) bool {
+			return r.ID == inverseRelationshipId
+		})
+		if inverseRelationshipIndex == -1 {
+			log.Printf("inverse relationship not found: %s\n", inverseRelationshipId)
+			return errors.New("error validating relationships")
+		}
+		inverseRelationship := relationshipTemplates[inverseRelationshipIndex]
+
+		if strings.HasSuffix(directRelationship.Cardinality, "many") {
+			targetExternalIdsToFind := make([]string, 0)
+			for _, id := range instanceRelationship.Target.(primitive.A) {
+				targetExternalIdsToFind = append(targetExternalIdsToFind, id.(string))
+			}
+			for _, targetExternalIdToFind := range targetExternalIdsToFind {
+				targetInstance, err := s.GetInstance(instance.TenantID, targetExternalIdToFind)
+				if err != nil {
+					log.Printf("error fetching target instance %s\n: %s", targetExternalIdToFind, err)
+					return errors.New("error validating relationships")
+				}
+
+				if !slices.Contains(directRelationship.Target, targetInstance.BasicInformation.RootTemplate) {
+					log.Printf("relationship %s target not correct\n", instanceRelationship.ID)
+					return errors.New("error validating relationships")
+				}
+
+				newInverseRelationshipId, _ := uuid.NewUUID()
+				targetInstance.Relationships = append(targetInstance.Relationships, models.InstanceRelationship{
+					ID:                     newInverseRelationshipId.String(),
+					Target:                 instance.BasicInformation.ExternalId,
+					RelationshipTemplateId: inverseRelationship.ID,
+				})
+
+				filter := bson.D{{Key: "tenantId", Value: instance.TenantID}, {Key: "basicInformation.externalId", Value: targetInstance.BasicInformation.ExternalId}}
+				if err := s.db.ReplaceInstance(filter, targetInstance); err != nil {
+					log.Println("error updating instance: ", err)
+					return err
+				}
+			}
+		} else {
+			targetExternalIdToFind := instanceRelationship.Target.(string)
+			targetInstance, err := s.GetInstance(instance.TenantID, targetExternalIdToFind)
+			if err != nil {
+				log.Printf("error fetching target instance %s\n: %s", targetExternalIdToFind, err)
+				return errors.New("error validating relationships")
+			}
+			if !slices.Contains(directRelationship.Target, targetInstance.BasicInformation.RootTemplate) {
+				log.Printf("relationship %s target not correct\n", instanceRelationship.ID)
+				return errors.New("error validating relationships")
+			}
+
+			newInverseRelationshipId, _ := uuid.NewUUID()
+			if targetInstance.Relationships == nil {
+				targetInstance.Relationships = append(targetInstance.Relationships, models.InstanceRelationship{
+					ID:                     newInverseRelationshipId.String(),
+					Target:                 []string{instance.BasicInformation.ExternalId},
+					RelationshipTemplateId: inverseRelationship.ID,
+				})
+			} else {
+				existingRelationshipIndex := slices.IndexFunc(targetInstance.Relationships, func(ir models.InstanceRelationship) bool {
+					return ir.RelationshipTemplateId == inverseRelationshipId
+				})
+				existingRelationship := targetInstance.Relationships[existingRelationshipIndex]
+				existingExternalIds := make([]string, 0)
+				for _, id := range existingRelationship.Target.(primitive.A) {
+					existingExternalIds = append(existingExternalIds, id.(string))
+				}
+				existingExternalIds = append(existingExternalIds, instance.BasicInformation.ExternalId)
+				targetInstance.Relationships[existingRelationshipIndex].Target = existingExternalIds
+			}
+
+			filter := bson.D{{Key: "tenantId", Value: instance.TenantID}, {Key: "basicInformation.externalId", Value: targetInstance.BasicInformation.ExternalId}}
+			if err := s.db.ReplaceInstance(filter, targetInstance); err != nil {
+				log.Println("error updating instance: ", err)
+				return err
+			}
+		}
+	}
+
 	return nil
 }
