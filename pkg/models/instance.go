@@ -30,10 +30,9 @@ type InstanceMetric struct {
 }
 
 type InstanceRelationship struct {
-	ID             string             `bson:"id" json:"id"`
-	Source         string             `bson:"source" json:"source"`
-	Target         string             `bson:"target" json:"target"`
-	RelationshipId primitive.ObjectID `bson:"relationshipId" json:"relationshipId"`
+	ID                     string             `bson:"id" json:"id"`
+	Target                 string             `bson:"target" json:"target"`
+	RelationshipTemplateId primitive.ObjectID `bson:"relationshipTemplateId" json:"relationshipTemplateId"`
 }
 
 type InstanceFormMetaData struct {
