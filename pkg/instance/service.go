@@ -25,6 +25,7 @@ type Service interface {
 	GetCreateInstanceForm(tenantId string, parentTemplateExternalId string) (*models.InstanceFormMetaData, error)
 	GetInstances(tenantId string) ([]models.Instance, error)
 	GetInstance(tenantId string, instanceExternalId string) (*models.Instance, error)
+	GetApplicableRelationshipInstances(tenantId, relationshipTemplateId, parentTemplate, instanceExternalIdToExclude string) ([]models.Instance, error)
 }
 
 type service struct {
@@ -39,6 +40,73 @@ func NewService(dbRepository db.Repository, templateService template.Service, co
 		templateService: templateService,
 		commonService:   commonService,
 	}
+}
+
+func (s *service) GetApplicableRelationshipInstances(tenantId, relationshipTemplateId, parentTemplate, instanceExternalIdToExclude string) ([]models.Instance, error) {
+	template, err := s.templateService.GetTemplate(tenantId, parentTemplate)
+	if err != nil {
+		log.Println("error fetching parent template: ", err)
+		return nil, err
+	}
+
+	rootTemplate := parentTemplate
+	if template.BasicInformation.RootTemplate != "" {
+		rootTemplate = template.BasicInformation.RootTemplate
+	}
+
+	relationshipTemplate, err := s.commonService.GetRelationship(relationshipTemplateId)
+	if err != nil {
+		log.Println("error fetching relationships: ", err)
+		return nil, err
+	}
+
+	filter := bson.D{
+		{
+			Key:   "tenantId",
+			Value: tenantId,
+		},
+		{
+			Key: "basicInformation.rootTemplate",
+			Value: bson.D{
+				{
+					Key:   "$in",
+					Value: relationshipTemplate.Target,
+				},
+			},
+		},
+	}
+
+	if rootTemplate == "p.com.space" {
+		filter = append(filter, bson.E{
+			Key: "relationships.relationshipTemplateId",
+			Value: bson.D{
+				{
+					Key:   "$ne",
+					Value: relationshipTemplate.Inverse,
+				},
+			},
+		})
+	}
+
+	if instanceExternalIdToExclude != "" {
+		filter = append(filter, bson.E{
+			Key: "basicInformation.externalId",
+			Value: bson.D{
+				{
+					Key:   "$ne",
+					Value: instanceExternalIdToExclude,
+				},
+			},
+		})
+	}
+
+	instances, err := s.db.GetAllInstances(filter, nil)
+	if err != nil {
+		log.Println("error fetching instances: ", err)
+		return nil, err
+	}
+
+	return instances, nil
 }
 
 func (s *service) GetInstances(tenantId string) ([]models.Instance, error) {

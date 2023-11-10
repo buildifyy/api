@@ -4,6 +4,9 @@ import (
 	"api/pkg/db"
 	"api/pkg/models"
 	"log"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service interface {
@@ -11,6 +14,7 @@ type Service interface {
 	GetMetricTypeDropdown() ([]models.Dropdown, error)
 	GetUnitDropdown() ([]models.Dropdown, error)
 	GetRelationships() ([]models.Relationship, error)
+	GetRelationship(id string) (models.Relationship, error)
 }
 
 type service struct {
@@ -24,13 +28,32 @@ func NewService(repository db.Repository) Service {
 }
 
 func (s *service) GetRelationships() ([]models.Relationship, error) {
-	values, err := s.db.GetRelationships("relationships")
+	values, err := s.db.GetRelationships(nil, "relationships")
 	if err != nil {
 		log.Println("error fetching relationships: ", err)
 		return nil, err
 	}
 
 	return values, nil
+}
+
+var objectIDFromHex = func(hex string) primitive.ObjectID {
+	objectID, err := primitive.ObjectIDFromHex(hex)
+	if err != nil {
+		log.Println("error creating object id from hex")
+	}
+	return objectID
+}
+
+func (s *service) GetRelationship(id string) (models.Relationship, error) {
+	filter := bson.D{{Key: "_id", Value: objectIDFromHex(id)}}
+	values, err := s.db.GetRelationships(filter, "relationships")
+	if err != nil {
+		log.Println("error fetching relationships: ", err)
+		return models.Relationship{}, err
+	}
+
+	return values[0], nil
 }
 
 func (s *service) GetAttributeDropdown() ([]models.Dropdown, error) {

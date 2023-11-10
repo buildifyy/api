@@ -16,6 +16,7 @@ type Controller interface {
 	GetCreateInstanceForm(c *gin.Context)
 	GetInstanceList(c *gin.Context)
 	GetInstanceById(context *gin.Context)
+	GetApplicableRelationshipInstances(context *gin.Context)
 }
 
 type controller struct {
@@ -59,6 +60,22 @@ func (c *controller) GetInstanceList(context *gin.Context) {
 	tenantID := context.Param("tenantId")
 
 	res, err := c.instanceService.GetInstances(tenantID)
+	if err != nil {
+		log.Println("error getting applicable relationship instances: ", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"data": res})
+}
+
+func (c *controller) GetApplicableRelationshipInstances(context *gin.Context) {
+	tenantID := context.Param("tenantId")
+	parentTemplate := context.Param("parentTemplate")
+	relationshipTemplateId := context.Param("relationshipTemplateId")
+	instanceExternalIdToExclude := context.Query("exclude")
+
+	res, err := c.instanceService.GetApplicableRelationshipInstances(tenantID, relationshipTemplateId, parentTemplate, instanceExternalIdToExclude)
 	if err != nil {
 		log.Println("error getting instances: ", err)
 		context.Status(http.StatusInternalServerError)

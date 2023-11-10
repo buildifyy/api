@@ -22,7 +22,7 @@ type Repository interface {
 	GetTemplate(filter primitive.D) (*models.Template, error)
 	GetInstance(filter primitive.D) (*models.Instance, error)
 	GetTypeDropdownValues(collection string) ([]models.Dropdown, error)
-	GetRelationships(collection string) ([]models.Relationship, error)
+	GetRelationships(filter primitive.D, collection string) ([]models.Relationship, error)
 	ReplaceTemplate(filter primitive.D, data interface{}) error
 	ReplaceInstance(filter primitive.D, data interface{}) error
 }
@@ -59,9 +59,12 @@ func (r *repository) ReplaceInstance(filter primitive.D, data interface{}) error
 	return nil
 }
 
-func (r *repository) GetRelationships(collection string) ([]models.Relationship, error) {
+func (r *repository) GetRelationships(filter primitive.D, collection string) ([]models.Relationship, error) {
 	c := r.client.Database("buildifyy").Collection(collection)
-	cursor, err := c.Find(context.Background(), bson.D{}, nil)
+	if filter == nil {
+		filter = primitive.D{}
+	}
+	cursor, err := c.Find(context.Background(), filter, nil)
 	if err != nil {
 		log.Println("error finding relationships in database: ", err)
 		return nil, err

@@ -48,6 +48,14 @@ func (m *MockService) GetRelationships() ([]models.Relationship, error) {
 	return args.Get(0).([]models.Relationship), args.Error(1)
 }
 
+func (m *MockService) GetRelationship(id string) (models.Relationship, error) {
+	args := m.Called(id)
+	if args.Get(0) == nil {
+		return models.Relationship{}, args.Error(1)
+	}
+	return args.Get(0).(models.Relationship), args.Error(1)
+}
+
 func TestNewController(t *testing.T) {
 	mockService := &MockService{}
 	mockController := &controller{

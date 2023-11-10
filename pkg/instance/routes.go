@@ -7,4 +7,5 @@ func RegisterRoutes(r *gin.Engine, instanceController Controller) {
 	r.POST("/api/v1/tenants/:tenantId/instances", instanceController.AddInstance)
 	r.GET("/api/v1/tenants/:tenantId/instances", instanceController.GetInstanceList)
 	r.GET("/api/v1/tenants/:tenantId/instances/:instanceId", instanceController.GetInstanceById)
+	r.GET("/api/v1/tenants/:tenantId/parents/:parentTemplate/relationships/:relationshipTemplateId/instances", instanceController.GetApplicableRelationshipInstances)
 }
